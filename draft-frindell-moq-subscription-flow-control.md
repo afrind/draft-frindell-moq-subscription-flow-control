@@ -53,9 +53,10 @@ informative:
 
 This document defines an extension to Media over QUIC Transport (MOQT) that
 lets a subscriber limit the number of subgroup streams and the total bytes a
-publisher may send for an individual subscription. It defines message
-parameters for advertising these limits, messages for granting credit and
-signaling flow control state, and a session error code.
+publisher may send for an individual subscription. It defines a Setup Option
+to negotiate the extension, message parameters for advertising these limits,
+messages for granting credit and signaling flow control state, and a
+session error code.
 
 --- middle
 
@@ -64,7 +65,7 @@ signaling flow control state, and a session error code.
 Media over QUIC Transport (MOQT) {{MOQT}} delivers a subscription's Objects
 across one or more subgroup streams, but provides no way for a subscriber to
 bound how many streams or bytes a publisher sends for that subscription.
-Transport-layer flow control operates per QUIC stream and per connection, so it
+Transport-layer flow control operates per stream and per session, so it
 cannot express a limit spanning a subscription's streams.
 
 This extension lets a subscriber limit the total subgroup streams
@@ -92,18 +93,17 @@ Its value is a single varint that is reserved; senders SHOULD set it to 0 and
 receivers MUST ignore it.
 
 The extension is negotiated when an endpoint has both sent and received this
-option, per the extension negotiation procedure of {{MOQT}}. It applies to both
+option, per the extension negotiation described in {{MOQT}}. It applies to both
 directions of the session.
 
 # Flow Control Model {#model}
 
-A subscriber sets a subscription's initial limits by including MAX_SUB_STREAMS
-and/or MAX_SUB_BYTES in the SUBSCRIBE or PUBLISH_OK that establishes it, and
-grants additional credit with SUB_FLOW_CONTROL_UPDATE
-({{message-sub-flow-control-update}}). The limits are independent; a
+A subscriber sets a subscription's initial limits by including the MAX_SUB_STREAMS
+and/or MAX_SUB_BYTES Parameters in the SUBSCRIBE or PUBLISH_OK that establishes it.
+The subscriber grants additional credit with SUB_FLOW_CONTROL_UPDATE
+({{message-sub-flow-control-update}}). The two limits are independent; a
 subscription MAY use either, both, or neither. Credit is not granted with
-REQUEST_UPDATE because it solicits a response, which is unsuitable for frequent
-grants.
+REQUEST_UPDATE because it solicits a response, which is unnecessary.
 
 The limits apply only to subgroup streams; Objects sent as datagrams are not
 counted. Limits and the messages defined here are scoped to a single session
@@ -120,7 +120,7 @@ close the session with `FLOW_CONTROL_EXCEEDED` ({{errors}}).
 
 When sending would exceed a limit, the publisher MUST NOT open a subgroup stream
 beyond the stream limit and MUST NOT send bytes beyond the byte limit, even if
-this means stopping in the middle of a stream. It retains the affected Objects
+this means stopping in the middle of a stream. It retains the blocked Objects
 until it receives additional credit, and SHOULD send SUB_STREAMS_BLOCKED or
 SUB_BYTES_BLOCKED, as applicable.
 
