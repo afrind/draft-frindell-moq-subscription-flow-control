@@ -52,259 +52,160 @@ informative:
 --- abstract
 
 This document defines an extension to Media over QUIC Transport (MOQT) that
-allows a subscriber to limit the number of subgroup streams and the total
-number of bytes a publisher may send for an individual subscription. The
-extension adds the MAX_SUB_STREAMS and MAX_SUB_BYTES message parameters for
-advertising these limits, the SUB_FLOW_CONTROL_UPDATE message for granting
-additional credit, the SUB_STREAMS_BLOCKED, SUB_BYTES_BLOCKED, and
-SUBGROUP_RESET messages for flow control signaling, and the
-FLOW_CONTROL_EXCEEDED session error code. Support for the extension is
-negotiated using a Setup Option.
+lets a subscriber limit the number of subgroup streams and the total bytes a
+publisher may send for an individual subscription. It defines message
+parameters for advertising these limits, messages for granting credit and
+signaling flow control state, and a session error code.
 
 --- middle
 
 # Introduction
 
-Media over QUIC Transport (MOQT) {{MOQT}} delivers the Objects of a
-subscription across one or more subgroup streams. The base protocol does not
-provide a way for a subscriber to bound the number of subgroup streams a
-publisher opens for a subscription, or the total number of bytes a publisher
-sends for it. A subscriber that wishes to protect its resources must rely on
-transport-layer flow control, which operates per QUIC stream and per QUIC
-connection rather than per subscription, and which cannot express a limit that
-spans the multiple streams belonging to a single subscription.
+Media over QUIC Transport (MOQT) {{MOQT}} delivers a subscription's Objects
+across one or more subgroup streams, but provides no way for a subscriber to
+bound how many streams or bytes a publisher sends for that subscription.
+Transport-layer flow control operates per QUIC stream and per connection, so it
+cannot express a limit spanning a subscription's streams.
 
-This document defines the Subscription Flow Control extension. It lets a
-subscriber advertise, at subscription time and thereafter, a limit on:
-
-* the total number of subgroup streams a publisher may open for the
-  subscription (MAX_SUB_STREAMS), and
-
-* the total number of bytes a publisher may send across all subgroup streams
-  of the subscription (MAX_SUB_BYTES).
-
-The subscriber grants additional credit after the subscription is established
-using the SUB_FLOW_CONTROL_UPDATE message, a unidirectional notification that
-does not consume a Request ID or solicit a response, unlike REQUEST_UPDATE.
-
-The extension also defines messages a publisher uses to signal that it has
-reached a limit (SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED) and a message a
-publisher uses to report the final byte count of a subgroup stream it reset
-(SUBGROUP_RESET), so that byte accounting remains accurate. A violation of a
-negotiated limit terminates the session with the FLOW_CONTROL_EXCEEDED error
-code.
-
-Support for this extension is negotiated during session establishment using
-the SUBSCRIPTION_FLOW_CONTROL Setup Option ({{negotiation}}), following the
-extension negotiation procedure of {{MOQT}}.
+This extension lets a subscriber limit the total subgroup streams
+(MAX_SUB_STREAMS) and total bytes (MAX_SUB_BYTES) for a subscription, and grant
+further credit with SUB_FLOW_CONTROL_UPDATE. Publishers signal that they are
+blocked with SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED, and report the final
+size of reset subgroup streams with SUBGROUP_RESET. Violations terminate the
+session with FLOW_CONTROL_EXCEEDED.
 
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
 
-This document uses the terminology of {{MOQT}}, including Object, Subgroup,
-subgroup stream, subscription, publisher, subscriber, request stream, Setup
-Option, and Message Parameter.
-
-In this document, "publisher" refers to the endpoint that sends Objects for a
-subscription, and "subscriber" refers to the endpoint that receives them, as
-defined in {{MOQT}}. The subscriber sets the flow control limits and the
-publisher honors them, regardless of which endpoint is the client or the
-server.
-
-All wire formats use the notation defined in {{MOQT}}. Setup Options are
-encoded as Key-Value-Pairs and Message Parameters use the Message Parameter
-encoding, both as defined in {{MOQT}}.
+This document uses the terminology and wire format notation of {{MOQT}}. The
+subscriber sets the limits and the publisher honors them, regardless of which
+endpoint is the client or server.
 
 # Extension Negotiation {#negotiation}
 
-An endpoint indicates support for this extension by including the
-SUBSCRIPTION_FLOW_CONTROL Setup Option in its SETUP message ({{MOQT}}).
-
 ## SUBSCRIPTION_FLOW_CONTROL Setup Option {#setup-option}
 
-The SUBSCRIPTION_FLOW_CONTROL option (Option Type 0x0A) indicates that the
-endpoint supports this extension. The Option Type is even, so its value is a
-single varint. The value is reserved; senders SHOULD set it to 0 and receivers
-MUST ignore it.
+An endpoint indicates support for this extension by including the
+SUBSCRIPTION_FLOW_CONTROL Setup Option (Option Type 0x0A) in its SETUP message.
+Its value is a single varint that is reserved; senders SHOULD set it to 0 and
+receivers MUST ignore it.
 
-The extension is negotiated when an endpoint has both sent and received a
-SUBSCRIPTION_FLOW_CONTROL option, as described in the extension negotiation
-procedure of {{MOQT}}. It applies to both directions of the session.
+The extension is negotiated when an endpoint has both sent and received this
+option, per the extension negotiation procedure of {{MOQT}}. It applies to both
+directions of the session.
 
 # Flow Control Model {#model}
 
-A subscriber sets a subscription's initial flow control limits by including the
-MAX_SUB_STREAMS and/or MAX_SUB_BYTES parameters in the message that establishes
-the subscription (SUBSCRIBE or PUBLISH_OK), and grants additional credit by
-sending SUB_FLOW_CONTROL_UPDATE ({{message-sub-flow-control-update}}). The two
-limits are independent; a subscription MAY use either, both, or neither.
+A subscriber sets a subscription's initial limits by including MAX_SUB_STREAMS
+and/or MAX_SUB_BYTES in the SUBSCRIBE or PUBLISH_OK that establishes it, and
+grants additional credit with SUB_FLOW_CONTROL_UPDATE
+({{message-sub-flow-control-update}}). The limits are independent; a
+subscription MAY use either, both, or neither. Credit is not granted with
+REQUEST_UPDATE because it solicits a response, which is unsuitable for frequent
+grants.
 
-Credit is granted with SUB_FLOW_CONTROL_UPDATE rather than REQUEST_UPDATE
-because REQUEST_UPDATE solicits a REQUEST_OK or REQUEST_ERROR response, which is
-unsuitable for frequent, fire-and-forget flow control grants ({{messages}}).
+The limits apply only to subgroup streams; Objects sent as datagrams are not
+counted. Limits and the messages defined here are scoped to a single session
+and are not forwarded. A relay honors its downstream subscriber's limits and
+independently sets its own limits toward its upstream publisher.
 
-These limits apply only to Objects delivered on subgroup streams. Objects
-delivered as datagrams are not counted and are not subject to MAX_SUB_STREAMS or
-MAX_SUB_BYTES; an endpoint that needs to bound datagram resource use relies on
-transport-level flow control.
-
-Flow control limits, and all of the messages defined by this extension, are
-scoped to a single session and are not forwarded end-to-end. When a relay is
-present, it honors the limits set by its downstream subscriber (acting as the
-publisher on that request stream) and independently sets its own limits toward
-its upstream publisher (acting as the subscriber); the two are unrelated.
-
-Each limit is scoped to a single subscription. A publisher MUST NOT exceed a
-limit that is in effect for a subscription. Counting is cumulative over the
-lifetime of the subscription:
-
-* The stream count is the total number of subgroup streams the publisher has
-  opened for the subscription.
-
-* The byte count is the total number of bytes the publisher has sent across
-  all subgroup streams for the subscription, as defined in
-  {{byte-accounting}}.
-
-An endpoint that detects a violation of a limit MUST close the session with
-`FLOW_CONTROL_EXCEEDED` ({{errors}}). Publisher behavior when a limit is reached,
-including signaling with SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED, is described
-in {{blocked}}.
+Limits are per subscription and cumulative over its lifetime: the stream count
+is the total number of subgroup streams opened, and the byte count is the total
+bytes sent across them ({{byte-accounting}}). A publisher MUST NOT exceed a
+limit in effect for a subscription. An endpoint that detects a violation MUST
+close the session with `FLOW_CONTROL_EXCEEDED` ({{errors}}).
 
 ## Publisher Behavior When Blocked {#blocked}
 
-When a publisher has data for a subscription but sending it would exceed the
-MAX_SUB_STREAMS or MAX_SUB_BYTES limit, it MUST NOT open a subgroup stream
-beyond the stream limit and MUST NOT send bytes beyond the byte limit, including
-stopping in the middle of a subgroup stream when the byte limit is reached. The
-publisher retains the
-affected Objects, deferring the opening of new subgroup streams and the
-transmission of buffered bytes until the subscriber grants additional credit
-with SUB_FLOW_CONTROL_UPDATE ({{message-sub-flow-control-update}}). The
-publisher SHOULD send SUB_STREAMS_BLOCKED or SUB_BYTES_BLOCKED, as applicable,
-when it becomes blocked.
+When sending would exceed a limit, the publisher MUST NOT open a subgroup stream
+beyond the stream limit and MUST NOT send bytes beyond the byte limit, even if
+this means stopping in the middle of a stream. It retains the affected Objects
+until it receives additional credit, and SHOULD send SUB_STREAMS_BLOCKED or
+SUB_BYTES_BLOCKED, as applicable.
 
-Objects retained while blocked remain subject to the base protocol's delivery
-guarantees; being blocked by flow control does not extend an Object's lifetime;
-the delivery timeout mechanisms (SUBGROUP_DELIVERY_TIMEOUT and
-OBJECT_DELIVERY_TIMEOUT) defined in {{MOQT}} continue to apply. An Object or
-subgroup whose delivery timeout expires while the publisher is blocked is
-handled as specified in {{MOQT}} even though the flow control limit prevented it
-from being sent. A subgroup stream reset for this reason is accounted for as
+Being blocked does not extend an Object's lifetime; the delivery timeouts of
+{{MOQT}} (SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT) continue to
+apply. A subgroup stream reset because of an expired timeout is accounted for as
 described in {{byte-accounting}}.
 
-A publisher is not required to buffer blocked data indefinitely. If retaining
-blocked Objects would cause the publisher to exceed its resource limits, the
-publisher MAY terminate the subscription using PUBLISH_DONE with
-`TOO_FAR_BEHIND`, as defined in {{MOQT}}, rather than continuing to wait for
-additional credit. This is the same mechanism the base protocol provides for a
-subscriber that fails to consume Objects at a sufficient rate.
+If retaining blocked Objects would exceed its resource limits, a publisher MAY
+terminate the subscription with PUBLISH_DONE and `TOO_FAR_BEHIND` ({{MOQT}}).
 
 ## Byte Accounting {#byte-accounting}
 
-The byte count charged against MAX_SUB_BYTES includes all the bytes serialized
-on subgroup streams for the subscription, comprising the SUBGROUP_HEADER (which
-begins with the stream type) and each Object (including its header fields and
-payload). It does not include QUIC or WebTransport transport framing.
+The byte count includes all bytes serialized on the subscription's subgroup
+streams: the SUBGROUP_HEADER (including the stream type) and each Object's
+header fields and payload. It excludes QUIC and WebTransport framing.
 
-Accounting is at byte granularity, not Object granularity. A publisher MAY send
-part of an Object and stop when it reaches the byte limit; it is not required to
-withhold an entire Object because the Object would not fit within the remaining
-credit. A publisher that stops in the middle of an Object leaves the subgroup
-stream open and resumes sending on it once additional credit arrives, subject to
-the delivery timeout and ordering rules of {{MOQT}}.
+Accounting is at byte granularity. A publisher MAY send part of an Object and
+stop at the byte limit, leaving the stream open and resuming when credit
+arrives, subject to the delivery timeout and ordering rules of {{MOQT}}.
 
-For a subgroup stream that the publisher closes normally (with a FIN), the
-subscriber charges the number of bytes it received on that stream. When a
-publisher resets a subgroup stream before sending all of its data, it reports
-the total number of bytes it sent on that stream in the Final Size field of the
-SUBGROUP_RESET message ({{message-subgroup-reset}}), and the subscriber charges
-Final Size for that stream. Accounting is cumulative: each SUBGROUP_RESET
-accounts for one reset of a subgroup stream, and a stream is charged exactly
-once, whether it ends with a FIN or a reset.
+Each subgroup stream is charged exactly once. For a stream closed with a FIN,
+the subscriber charges the bytes it received. When a publisher resets a stream,
+it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
+({{message-subgroup-reset}}), and the subscriber charges that value. Because a
+publisher never has more than one open subgroup stream with the same Group ID
+and Subgroup ID ({{MOQT}}), the subscriber can correlate each SUBGROUP_RESET
+with its stream.
 
-For native QUIC, the reported Final Size is redundant with the Final Size
-carried in the QUIC RESET_STREAM frame ({{Section 19.4 of QUIC}}), which the
-transport delivers to the receiver regardless of loss. SUBGROUP_RESET is needed
-because a WebTransport ({{WebTransport}}) implementation does not necessarily
-surface the reset stream's final size to the application. When the subscriber
-can independently determine the number of bytes the publisher sent on the
-stream (for example, from the QUIC RESET_STREAM Final Size, or from the bytes
-it received on a stream closed with a FIN), and that number differs from the
-value the publisher reports or the subscriber would otherwise charge, the
-subscriber MUST close the session with `PROTOCOL_VIOLATION`.
+On native QUIC, this Final Size duplicates that of RESET_STREAM
+({{Section 19.4 of QUIC}}), but WebTransport ({{WebTransport}})
+implementations do not necessarily expose it. If the subscriber can
+independently determine the bytes sent on a stream (from RESET_STREAM or a FIN)
+and that differs from the value reported or otherwise charged, it MUST close the
+session with `PROTOCOL_VIOLATION`.
 
-Because a publisher does not maintain more than one open subgroup stream with
-the same Group ID and Subgroup ID at a time ({{MOQT}}), the subscriber can
-correlate each SUBGROUP_RESET with the subgroup stream it reset.
-
-For example, with 100 bytes of remaining credit and a 200-byte Object to send:
+For example, with 100 bytes of credit and a 200-byte Object:
 
 ~~~
-Remaining credit: 100 bytes      Object to send: 200 bytes
-
-1. Publisher sends 100 bytes on the subgroup stream (SUBGROUP_HEADER
-   + Object header + as much payload as fits), reaching the limit.
-2. Publisher SHOULD send SUB_BYTES_BLOCKED.
-3. The Object's delivery timeout expires.
-4. Publisher resets the subgroup stream and sends SUBGROUP_RESET
-   with Final Size = 100.
-5. Subscriber charges 100 bytes; the byte count now equals the
-   limit -- reached but never exceeded.
+1. Publisher sends 100 bytes (SUBGROUP_HEADER, Object header,
+   partial payload), reaching the limit, and SHOULD send
+   SUB_BYTES_BLOCKED.
+2. The Object's delivery timeout expires.
+3. Publisher resets the stream and sends SUBGROUP_RESET with
+   Final Size = 100.
+4. Subscriber charges 100 bytes: limit reached, not exceeded.
 ~~~
 
 # Message Parameters {#parameters}
 
-This extension defines two message parameters. They follow the Message
-Parameter rules of {{MOQT}} and use the Message Parameter encoding
-(Type Delta followed by Value) defined there. Each MAY appear in a SUBSCRIBE or
-PUBLISH_OK message that establishes a subscription, or in a
-SUB_FLOW_CONTROL_UPDATE message ({{message-sub-flow-control-update}}) for that
-subscription.
+This extension defines two Message Parameters ({{MOQT}}). Each MAY appear in the
+SUBSCRIBE or PUBLISH_OK that establishes a subscription, where it sets the
+initial limit, or in a SUB_FLOW_CONTROL_UPDATE, where it is added to the current
+limit.
 
-For both parameters, the value in SUBSCRIBE or PUBLISH_OK is the initial limit,
-and the value in SUB_FLOW_CONTROL_UPDATE is additive, granting credit beyond the
-current limit. The cumulative limit MUST NOT exceed 2^64-1; an endpoint that
-receives a SUB_FLOW_CONTROL_UPDATE that would raise a limit above 2^64-1 MUST
-close the session with `PROTOCOL_VIOLATION`. If a parameter is omitted from the
-SUBSCRIBE or PUBLISH_OK that establishes a subscription, that limit does not
-apply to the subscription, and a later SUB_FLOW_CONTROL_UPDATE MUST NOT include
-it; an endpoint that receives a SUB_FLOW_CONTROL_UPDATE carrying a parameter
-that was absent at establishment MUST close the session with
+A cumulative limit MUST NOT exceed 2^64-1. If a parameter is absent when the
+subscription is established, that limit does not apply and a later
+SUB_FLOW_CONTROL_UPDATE MUST NOT include it. An endpoint that receives a
+SUB_FLOW_CONTROL_UPDATE violating either rule MUST close the session with
 `PROTOCOL_VIOLATION`.
 
 ## MAX_SUB_STREAMS Parameter {#max-sub-streams}
 
-The MAX_SUB_STREAMS parameter (Parameter Type 0x33) is a varint. It sets or
-updates the limit on the total number of subgroup streams the publisher can open
-for the subscription. Publisher behavior when this limit is reached is described
-in {{blocked}}.
+MAX_SUB_STREAMS (Parameter Type 0x33) is a varint limiting the total number of
+subgroup streams the publisher can open for the subscription.
 
 ## MAX_SUB_BYTES Parameter {#max-sub-bytes}
 
-The MAX_SUB_BYTES parameter (Parameter Type 0x36) is a varint. It sets or
-updates the limit on the total number of bytes the publisher can send across all
-subgroup streams for the subscription, counted as described in
-{{byte-accounting}}. Publisher behavior when this limit is reached is described
-in {{blocked}}.
+MAX_SUB_BYTES (Parameter Type 0x36) is a varint limiting the total bytes the
+publisher can send across the subscription's subgroup streams
+({{byte-accounting}}).
 
 # Messages {#messages}
 
-This extension defines four messages. Each is sent on the subscription's
-request stream and uses the MOQT control message framing with a 16-bit Length
-field, as defined for control messages in {{MOQT}}. None of these messages
-consumes a Request ID or solicits a response.
+Each message below is sent on the subscription's request stream using MOQT
+control message framing with a 16-bit Length ({{MOQT}}). None consumes a
+Request ID or solicits a response.
 
 ## SUB_FLOW_CONTROL_UPDATE {#message-sub-flow-control-update}
 
-A subscriber sends a `SUB_FLOW_CONTROL_UPDATE` message on the subscription's
-request stream to grant the publisher additional flow control credit. It
-carries the MAX_SUB_STREAMS and/or MAX_SUB_BYTES parameters ({{parameters}}).
-A subscriber MAY send it at any time after the subscription is established,
-whether or not the publisher has signaled that it is blocked. A subscriber that
-intends to grant credit therefore MUST keep the send direction of the request
-stream open ({{MOQT}}). A SUB_FLOW_CONTROL_UPDATE received after the
-subscription has ended has no effect.
+A subscriber sends `SUB_FLOW_CONTROL_UPDATE` to grant additional credit. It MAY
+be sent any time after the subscription is established, whether or not the
+publisher is blocked, so a subscriber that intends to grant credit MUST keep the
+send direction of the request stream open. It has no effect if received after
+the subscription ends.
 
 ~~~
 SUB_FLOW_CONTROL_UPDATE Message {
@@ -316,23 +217,14 @@ SUB_FLOW_CONTROL_UPDATE Message {
 ~~~
 {: #moq-transport-sub-flow-control-update-format title="MOQT SUB_FLOW_CONTROL_UPDATE Message"}
 
-* Number of Parameters: The number of parameters that follow.
-
-* Parameters: MAX_SUB_STREAMS ({{max-sub-streams}}) and/or MAX_SUB_BYTES
-  ({{max-sub-bytes}}), each granting additional credit for the corresponding
-  limit. A SUB_FLOW_CONTROL_UPDATE that carries neither parameter has no effect
-  but is not an error.
+* Parameters: MAX_SUB_STREAMS and/or MAX_SUB_BYTES, each granting additional
+  credit. A message carrying neither has no effect but is not an error.
 
 ## SUBGROUP_RESET {#message-subgroup-reset}
 
-A publisher sends a `SUBGROUP_RESET` message on the subscription's request
-stream to report the final byte count of a subgroup stream that was reset.
-This allows the subscriber to accurately account for bytes consumed against the
-MAX_SUB_BYTES limit ({{max-sub-bytes}}).
-
-A publisher MAY send SUBGROUP_RESET for any subscription at its discretion,
-regardless of whether flow control limits are in use, provided the extension
-has been negotiated.
+A publisher sends `SUBGROUP_RESET` to report the final byte count of a reset
+subgroup stream ({{byte-accounting}}). Once the extension is negotiated, a
+publisher MAY send it for any subscription, whether or not limits are in use.
 
 ~~~
 SUBGROUP_RESET Message {
@@ -345,18 +237,14 @@ SUBGROUP_RESET Message {
 ~~~
 {: #moq-transport-subgroup-reset-format title="MOQT SUBGROUP_RESET Message"}
 
-* Group ID: The Group ID of the reset subgroup stream.
+* Group ID, Subgroup ID: Identify the reset subgroup stream.
 
-* Subgroup ID: The Subgroup ID of the reset subgroup stream.
-
-* Final Size: The total number of bytes sent on the subgroup stream before it
-  was reset, counted as described in {{byte-accounting}}.
+* Final Size: The bytes sent on the stream before it was reset.
 
 ## SUB_STREAMS_BLOCKED {#message-sub-streams-blocked}
 
-A publisher sends a `SUB_STREAMS_BLOCKED` message on the subscription's request
-stream to signal that it wants to open a subgroup stream but is prevented from
-doing so by the MAX_SUB_STREAMS limit ({{max-sub-streams}}).
+A publisher sends `SUB_STREAMS_BLOCKED` when it wants to open a subgroup stream
+but MAX_SUB_STREAMS prevents it.
 
 ~~~
 SUB_STREAMS_BLOCKED Message {
@@ -371,9 +259,8 @@ SUB_STREAMS_BLOCKED Message {
 
 ## SUB_BYTES_BLOCKED {#message-sub-bytes-blocked}
 
-A publisher sends a `SUB_BYTES_BLOCKED` message on the subscription's request
-stream to signal that it has data it wants to send but is prevented from
-sending it by the MAX_SUB_BYTES limit ({{max-sub-bytes}}).
+A publisher sends `SUB_BYTES_BLOCKED` when it has data to send but MAX_SUB_BYTES
+prevents it.
 
 ~~~
 SUB_BYTES_BLOCKED Message {
@@ -388,43 +275,31 @@ SUB_BYTES_BLOCKED Message {
 
 # Error Handling {#errors}
 
-This extension defines the FLOW_CONTROL_EXCEEDED session termination error
-code. An endpoint uses it to close the session when the peer violates a
-subscription flow control limit, as described in {{model}}.
-
 FLOW_CONTROL_EXCEEDED (0x1C):
-: The peer violated a subscription flow control limit (MAX_SUB_STREAMS or
-  MAX_SUB_BYTES).
+: A session termination error code indicating that the peer violated a
+  subscription flow control limit (MAX_SUB_STREAMS or MAX_SUB_BYTES).
 
 # Security Considerations
 
-The limits defined by this extension let a subscriber bound the resources a
-publisher can consume on its behalf per subscription, which complements the
-connection- and stream-level flow control provided by the underlying
-transport. A subscriber SHOULD set limits consistent with the resources it is
-willing to devote to a subscription.
+These limits let a subscriber bound the resources a publisher consumes per
+subscription, complementing transport flow control. A subscriber SHOULD set
+limits consistent with the resources it will devote to a subscription.
 
-The SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED messages are advisory. A
-subscriber MUST NOT rely on receiving them before a limit is reached, and MUST
-be prepared to enforce a limit even if the publisher does not signal that it is
-blocked. Conversely, a subscriber that grants additional credit only in
-response to these messages could stall a publisher that does not send them;
-implementations that wish to avoid this can grant credit proactively.
+SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED are advisory. A subscriber MUST NOT
+rely on receiving them and MUST enforce limits regardless. A subscriber that
+grants credit only in response to them could stall a publisher that does not
+send them; granting credit proactively avoids this.
 
-Because SUBGROUP_RESET reports a byte count that the subscriber charges against
-MAX_SUB_BYTES, a misbehaving publisher could report fewer bytes than it actually
-sent in order to evade the limit. To prevent this, whenever the subscriber can
-independently determine the number of bytes sent on a stream (for example, from
-the QUIC RESET_STREAM Final Size), any discrepancy from the charged value is a
-`PROTOCOL_VIOLATION` ({{byte-accounting}}). An endpoint MAY additionally bound
-resource use with transport-level flow control.
+A misbehaving publisher could under-report Final Size in SUBGROUP_RESET to
+evade MAX_SUB_BYTES. Where the subscriber can independently determine the bytes
+sent, a discrepancy is a `PROTOCOL_VIOLATION` ({{byte-accounting}}). An
+endpoint MAY additionally use transport-level flow control.
 
 # IANA Considerations
 
 This document registers entries in registries established by {{MOQT}}. All
-requested codepoints are provisional pending working group adoption and can be
-reassigned by IANA to avoid collisions with the base protocol or other
-extensions.
+codepoints are provisional pending working group adoption and can be reassigned
+by IANA to avoid collisions.
 
 ## Setup Option {#iana-setup-option}
 
@@ -448,8 +323,7 @@ registry:
 ## Message Types {#iana-message-types}
 
 IANA is requested to add the following entries to the "MOQT Message Types"
-registry. All four messages are sent on the request stream and none is the
-first message on a stream.
+registry. None is the first message on a stream.
 
 | ID   | Messages | Stream |
 |-----:|:---------|:-------|
@@ -473,7 +347,6 @@ Error Codes" registry:
 {:numbered="false"}
 
 This extension is derived from a proposal to add subscription flow control to
-the base Media over QUIC Transport protocol.
-
-The initial conversion of that proposal into this extension draft was drafted
-with the assistance of Claude Code.
+the base Media over QUIC Transport protocol. The initial conversion of that
+proposal into this extension draft was drafted with the assistance of Claude
+Code.
