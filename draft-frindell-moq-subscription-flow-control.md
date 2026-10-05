@@ -53,25 +53,20 @@ informative:
 
 This document defines an extension to Media over QUIC Transport (MOQT) that
 allows a subscriber to limit the number of subgroup streams and the total
-number of bytes a publisher may send for an individual subscription. The
-extension adds the MAX_SUB_STREAMS and MAX_SUB_BYTES message parameters for
-advertising these limits, the SUB_FLOW_CONTROL_UPDATE message for granting
-additional credit, the SUB_STREAMS_BLOCKED, SUB_BYTES_BLOCKED, and
-SUBGROUP_RESET messages for flow control signaling, and the
-FLOW_CONTROL_EXCEEDED session error code. Support for the extension is
-negotiated using a Setup Option.
+number of bytes a publisher may send for an individual subscription.
+Support for the extension is negotiated using a Setup Option.
 
 --- middle
 
 # Introduction
 
-Media over QUIC Transport (MOQT) {{MOQT}} delivers the Objects of a
-subscription across one or more subgroup streams. The base protocol does not
+Media over QUIC Transport (MOQT) {{MOQT}} delivers the Objects for a
+subscription in subgroup streams and/or datagrams. The base protocol does not
 provide a way for a subscriber to bound the number of subgroup streams a
 publisher opens for a subscription, or the total number of bytes a publisher
 sends for it. A subscriber that wishes to protect its resources must rely on
-transport-layer flow control, which operates per QUIC stream and per QUIC
-connection rather than per subscription, and which cannot express a limit that
+transport-layer flow control, which operates per stream and per session
+rather than per subscription, and which cannot express a limit that
 spans the multiple streams belonging to a single subscription.
 
 This document defines the Subscription Flow Control extension. It lets a
@@ -84,8 +79,9 @@ subscriber advertise, at subscription time and thereafter, a limit on:
   of the subscription (MAX_SUB_BYTES).
 
 The subscriber grants additional credit after the subscription is established
-using the SUB_FLOW_CONTROL_UPDATE message, a unidirectional notification that
-does not consume a Request ID or solicit a response, unlike REQUEST_UPDATE.
+using the SUB_FLOW_CONTROL_UPDATE message, a unidirectional notification sent
+on the subscription's control stream that does not consume a Request ID or
+solicit a response, unlike REQUEST_UPDATE.
 
 The extension also defines messages a publisher uses to signal that it has
 reached a limit (SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED) and a message a
