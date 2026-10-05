@@ -75,6 +75,9 @@ blocked with SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED, and report the final
 size of reset subgroup streams with SUBGROUP_RESET. Violations terminate the
 session with FLOW_CONTROL_EXCEEDED.
 
+Support for this extension is negotiated during session establishment using
+the SUBSCRIPTION_FLOW_CONTROL Setup Option ({{negotiation}}).
+
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
