@@ -102,7 +102,9 @@ directions of the session.
 # Flow Control Model {#model}
 
 A subscriber sets a subscription's initial limits by including the MAX_SUB_STREAMS
-and/or MAX_SUB_BYTES Parameters in the SUBSCRIBE or PUBLISH_OK that establishes it.
+and/or MAX_SUB_BYTES Parameters in the control message that establishes it: 
+SUBSCRIBE or SUBSCRIBE_TRACKS.  Subscriptions initiated by a PUBLISH that are not
+in response to a SUBSCRIBE_TRACKS start with no flow control credit.
 The subscriber grants additional credit with SUB_FLOW_CONTROL_UPDATE
 ({{message-sub-flow-control-update}}). The two limits are independent; a
 subscription MAY use either, both, or neither. Credit is not granted with
@@ -175,8 +177,8 @@ For example, with 100 bytes of credit and a 200-byte Object:
 # Message Parameters {#parameters}
 
 This extension defines two Message Parameters ({{MOQT}}). Each MAY appear in the
-SUBSCRIBE or PUBLISH_OK that establishes a subscription, where it sets the
-initial limit, or in a SUB_FLOW_CONTROL_UPDATE, where it is added to the current
+SUBSCRIBE or SUBSCRIBE_TRACKS, where it sets the initial limit for the 
+subscription, or in a SUB_FLOW_CONTROL_UPDATE, where it is added to the current
 limit.
 
 A cumulative limit MUST NOT exceed 2^64-1. If a parameter is absent when the
