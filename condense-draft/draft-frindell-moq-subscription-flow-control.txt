@@ -120,9 +120,6 @@ Table of Contents
    streams with SUBGROUP_RESET.  Violations terminate the session with
    FLOW_CONTROL_EXCEEDED.
 
-   Support for this extension is negotiated during session establishment
-   using the SUBSCRIPTION_FLOW_CONTROL Setup Option (Section 3).
-
 2.  Conventions and Definitions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
