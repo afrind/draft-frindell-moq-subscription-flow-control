@@ -9,19 +9,19 @@ number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: "Web and Internet Transport"
+workgroup: "Media Over QUIC"
 keyword:
  - next generation
  - unicorn
  - AI-native
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  group: "Media Over QUIC"
+  type: "Working Group"
+  mail: "moq@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/moq/"
+  github: "afrind/draft-frindell-moq-subscription-flow-control"
+  latest: "https://afrind.github.io/draft-frindell-moq-subscription-flow-control/draft-frindell-moq-subscription-flow-control.html"
 
 author:
  -
