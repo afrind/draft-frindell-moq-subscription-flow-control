@@ -1,0 +1,601 @@
+
+
+
+
+Media Over QUIC                                         A. Frindell, Ed.
+Internet-Draft                                                      Meta
+Intended status: Standards Track                           I. Swett, Ed.
+Expires: 8 April 2027                                             Google
+                                                          5 October 2026
+
+
+   Subscription Flow Control Extension for Media over QUIC Transport
+          draft-frindell-moq-subscription-flow-control-latest
+
+Abstract
+
+   This document defines an extension to Media over QUIC Transport
+   (MOQT) that allows a subscriber to limit the number of subgroup
+   streams and the total number of bytes a publisher may send for an
+   individual subscription.  Support for the extension is negotiated
+   using a Setup Option.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://afrind.github.io/draft-frindell-moq-subscription-flow-
+   control/draft-frindell-moq-subscription-flow-control.html.  Status
+   information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-frindell-moq-subscription-
+   flow-control/.
+
+   Discussion of this document takes place on the Media Over QUIC
+   Working Group mailing list (mailto:moq@ietf.org), which is archived
+   at https://mailarchive.ietf.org/arch/browse/moq/.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/moq/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/afrind/draft-frindell-moq-subscription-flow-
+   control.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 8 April 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Extension Negotiation
+     3.1.  SUBSCRIPTION_FLOW_CONTROL Setup Option
+   4.  Flow Control Model
+     4.1.  Publisher Behavior When Blocked
+     4.2.  Byte Accounting
+   5.  Message Parameters
+     5.1.  MAX_SUB_STREAMS Parameter
+     5.2.  MAX_SUB_BYTES Parameter
+   6.  Messages
+     6.1.  SUB_FLOW_CONTROL_UPDATE
+     6.2.  SUBGROUP_RESET
+     6.3.  SUB_STREAMS_BLOCKED
+     6.4.  SUB_BYTES_BLOCKED
+   7.  Error Handling
+   8.  Security Considerations
+   9.  IANA Considerations
+     9.1.  Setup Option
+     9.2.  Message Parameters
+     9.3.  Message Types
+     9.4.  Session Termination Error Code
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   Media over QUIC Transport (MOQT) [MOQT] delivers the Objects for a
+   subscription in subgroup streams and/or datagrams.  The base protocol
+   does not provide a way for a subscriber to bound the number of
+   subgroup streams a publisher opens for a subscription, or the total
+   number of bytes a publisher sends for it.  A subscriber that wishes
+   to protect its resources must rely on transport-layer flow control,
+   which operates per stream and per session rather than per
+   subscription, and which cannot express a limit that spans the
+   multiple streams belonging to a single subscription.
+
+   This document defines the Subscription Flow Control extension.  It
+   lets a subscriber advertise, at subscription time and thereafter, a
+   limit on:
+
+   *  the total number of subgroup streams a publisher may open for the
+      subscription (MAX_SUB_STREAMS), and
+
+   *  the total number of bytes a publisher may send across all subgroup
+      streams of the subscription (MAX_SUB_BYTES).
+
+   The subscriber grants additional credit after the subscription is
+   established using the SUB_FLOW_CONTROL_UPDATE message, a
+   unidirectional notification sent on the subscription's control stream
+   that does not consume a Request ID or solicit a response, unlike
+   REQUEST_UPDATE.
+
+   The extension also defines messages a publisher uses to signal that
+   it has reached a limit (SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED)
+   and a message a publisher uses to report the final byte count of a
+   subgroup stream it reset (SUBGROUP_RESET), so that byte accounting
+   remains accurate.  A violation of a negotiated limit terminates the
+   session with the FLOW_CONTROL_EXCEEDED error code.
+
+   Support for this extension is negotiated during session establishment
+   using the SUBSCRIPTION_FLOW_CONTROL Setup Option (Section 3),
+   following the extension negotiation procedure of [MOQT].
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   This document uses the terminology of [MOQT], including Object,
+   Subgroup, subgroup stream, subscription, publisher, subscriber,
+   request stream, Setup Option, and Message Parameter.
+
+   In this document, "publisher" refers to the endpoint that sends
+   Objects for a subscription, and "subscriber" refers to the endpoint
+   that receives them, as defined in [MOQT].  The subscriber sets the
+   flow control limits and the publisher honors them, regardless of
+   which endpoint is the client or the server.
+
+   All wire formats use the notation defined in [MOQT].  Setup Options
+   are encoded as Key-Value-Pairs and Message Parameters use the Message
+   Parameter encoding, both as defined in [MOQT].
+
+3.  Extension Negotiation
+
+   An endpoint indicates support for this extension by including the
+   SUBSCRIPTION_FLOW_CONTROL Setup Option in its SETUP message ([MOQT]).
+
+3.1.  SUBSCRIPTION_FLOW_CONTROL Setup Option
+
+   The SUBSCRIPTION_FLOW_CONTROL option (Option Type 0x0A) indicates
+   that the endpoint supports this extension.  The Option Type is even,
+   so its value is a single varint.  The value is reserved; senders
+   SHOULD set it to 0 and receivers MUST ignore it.
+
+   The extension is negotiated when an endpoint has both sent and
+   received a SUBSCRIPTION_FLOW_CONTROL option, as described in the
+   extension negotiation procedure of [MOQT].  It applies to both
+   directions of the session.
+
+4.  Flow Control Model
+
+   A subscriber sets a subscription's initial flow control limits by
+   including the MAX_SUB_STREAMS and/or MAX_SUB_BYTES parameters in the
+   message that establishes the subscription (SUBSCRIBE or PUBLISH_OK),
+   and grants additional credit by sending SUB_FLOW_CONTROL_UPDATE
+   (Section 6.1).  The two limits are independent; a subscription MAY
+   use either, both, or neither.
+
+   Credit is granted with SUB_FLOW_CONTROL_UPDATE rather than
+   REQUEST_UPDATE because REQUEST_UPDATE solicits a REQUEST_OK or
+   REQUEST_ERROR response, which is unsuitable for frequent, fire-and-
+   forget flow control grants (Section 6).
+
+   These limits apply only to Objects delivered on subgroup streams.
+   Objects delivered as datagrams are not counted and are not subject to
+   MAX_SUB_STREAMS or MAX_SUB_BYTES; an endpoint that needs to bound
+   datagram resource use relies on transport-level flow control.
+
+   Flow control limits, and all of the messages defined by this
+   extension, are scoped to a single session and are not forwarded end-
+   to-end.  When a relay is present, it honors the limits set by its
+   downstream subscriber (acting as the publisher on that request
+   stream) and independently sets its own limits toward its upstream
+   publisher (acting as the subscriber); the two are unrelated.
+
+   Each limit is scoped to a single subscription.  A publisher MUST NOT
+   exceed a limit that is in effect for a subscription.  Counting is
+   cumulative over the lifetime of the subscription:
+
+   *  The stream count is the total number of subgroup streams the
+      publisher has opened for the subscription.
+
+   *  The byte count is the total number of bytes the publisher has sent
+      across all subgroup streams for the subscription, as defined in
+      Section 4.2.
+
+   An endpoint that detects a violation of a limit MUST close the
+   session with FLOW_CONTROL_EXCEEDED (Section 7).  Publisher behavior
+   when a limit is reached, including signaling with SUB_STREAMS_BLOCKED
+   and SUB_BYTES_BLOCKED, is described in Section 4.1.
+
+4.1.  Publisher Behavior When Blocked
+
+   When a publisher has data for a subscription but sending it would
+   exceed the MAX_SUB_STREAMS or MAX_SUB_BYTES limit, it MUST NOT open a
+   subgroup stream beyond the stream limit and MUST NOT send bytes
+   beyond the byte limit, including stopping in the middle of a subgroup
+   stream when the byte limit is reached.  The publisher retains the
+   affected Objects, deferring the opening of new subgroup streams and
+   the transmission of buffered bytes until the subscriber grants
+   additional credit with SUB_FLOW_CONTROL_UPDATE (Section 6.1).  The
+   publisher SHOULD send SUB_STREAMS_BLOCKED or SUB_BYTES_BLOCKED, as
+   applicable, when it becomes blocked.
+
+   Objects retained while blocked remain subject to the base protocol's
+   delivery guarantees; being blocked by flow control does not extend an
+   Object's lifetime; the delivery timeout mechanisms
+   (SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT) defined in
+   [MOQT] continue to apply.  An Object or subgroup whose delivery
+   timeout expires while the publisher is blocked is handled as
+   specified in [MOQT] even though the flow control limit prevented it
+   from being sent.  A subgroup stream reset for this reason is
+   accounted for as described in Section 4.2.
+
+   A publisher is not required to buffer blocked data indefinitely.  If
+   retaining blocked Objects would cause the publisher to exceed its
+   resource limits, the publisher MAY terminate the subscription using
+   PUBLISH_DONE with TOO_FAR_BEHIND, as defined in [MOQT], rather than
+   continuing to wait for additional credit.  This is the same mechanism
+   the base protocol provides for a subscriber that fails to consume
+   Objects at a sufficient rate.
+
+4.2.  Byte Accounting
+
+   The byte count charged against MAX_SUB_BYTES includes all the bytes
+   serialized on subgroup streams for the subscription, comprising the
+   SUBGROUP_HEADER (which begins with the stream type) and each Object
+   (including its header fields and payload).  It does not include QUIC
+   or WebTransport transport framing.
+
+   Accounting is at byte granularity, not Object granularity.  A
+   publisher MAY send part of an Object and stop when it reaches the
+   byte limit; it is not required to withhold an entire Object because
+   the Object would not fit within the remaining credit.  A publisher
+   that stops in the middle of an Object leaves the subgroup stream open
+   and resumes sending on it once additional credit arrives, subject to
+   the delivery timeout and ordering rules of [MOQT].
+
+   For a subgroup stream that the publisher closes normally (with a
+   FIN), the subscriber charges the number of bytes it received on that
+   stream.  When a publisher resets a subgroup stream before sending all
+   of its data, it reports the total number of bytes it sent on that
+   stream in the Final Size field of the SUBGROUP_RESET message
+   (Section 6.2), and the subscriber charges Final Size for that stream.
+   Accounting is cumulative: each SUBGROUP_RESET accounts for one reset
+   of a subgroup stream, and a stream is charged exactly once, whether
+   it ends with a FIN or a reset.
+
+   For native QUIC, the reported Final Size is redundant with the Final
+   Size carried in the QUIC RESET_STREAM frame (Section 19.4 of [QUIC]),
+   which the transport delivers to the receiver regardless of loss.
+   SUBGROUP_RESET is needed because a WebTransport ([WebTransport])
+   implementation does not necessarily surface the reset stream's final
+   size to the application.  When the subscriber can independently
+   determine the number of bytes the publisher sent on the stream (for
+   example, from the QUIC RESET_STREAM Final Size, or from the bytes it
+   received on a stream closed with a FIN), and that number differs from
+   the value the publisher reports or the subscriber would otherwise
+   charge, the subscriber MUST close the session with
+   PROTOCOL_VIOLATION.
+
+   Because a publisher does not maintain more than one open subgroup
+   stream with the same Group ID and Subgroup ID at a time ([MOQT]), the
+   subscriber can correlate each SUBGROUP_RESET with the subgroup stream
+   it reset.
+
+   For example, with 100 bytes of remaining credit and a 200-byte Object
+   to send:
+
+   Remaining credit: 100 bytes      Object to send: 200 bytes
+
+   1. Publisher sends 100 bytes on the subgroup stream (SUBGROUP_HEADER
+      + Object header + as much payload as fits), reaching the limit.
+   2. Publisher SHOULD send SUB_BYTES_BLOCKED.
+   3. The Object's delivery timeout expires.
+   4. Publisher resets the subgroup stream and sends SUBGROUP_RESET
+      with Final Size = 100.
+   5. Subscriber charges 100 bytes; the byte count now equals the
+      limit -- reached but never exceeded.
+
+5.  Message Parameters
+
+   This extension defines two message parameters.  They follow the
+   Message Parameter rules of [MOQT] and use the Message Parameter
+   encoding (Type Delta followed by Value) defined there.  Each MAY
+   appear in a SUBSCRIBE or PUBLISH_OK message that establishes a
+   subscription, or in a SUB_FLOW_CONTROL_UPDATE message (Section 6.1)
+   for that subscription.
+
+   For both parameters, the value in SUBSCRIBE or PUBLISH_OK is the
+   initial limit, and the value in SUB_FLOW_CONTROL_UPDATE is additive,
+   granting credit beyond the current limit.  The cumulative limit MUST
+   NOT exceed 2^64-1; an endpoint that receives a
+   SUB_FLOW_CONTROL_UPDATE that would raise a limit above 2^64-1 MUST
+   close the session with PROTOCOL_VIOLATION.  If a parameter is omitted
+   from the SUBSCRIBE or PUBLISH_OK that establishes a subscription,
+   that limit does not apply to the subscription, and a later
+   SUB_FLOW_CONTROL_UPDATE MUST NOT include it; an endpoint that
+   receives a SUB_FLOW_CONTROL_UPDATE carrying a parameter that was
+   absent at establishment MUST close the session with
+   PROTOCOL_VIOLATION.
+
+5.1.  MAX_SUB_STREAMS Parameter
+
+   The MAX_SUB_STREAMS parameter (Parameter Type 0x33) is a varint.  It
+   sets or updates the limit on the total number of subgroup streams the
+   publisher can open for the subscription.  Publisher behavior when
+   this limit is reached is described in Section 4.1.
+
+5.2.  MAX_SUB_BYTES Parameter
+
+   The MAX_SUB_BYTES parameter (Parameter Type 0x36) is a varint.  It
+   sets or updates the limit on the total number of bytes the publisher
+   can send across all subgroup streams for the subscription, counted as
+   described in Section 4.2.  Publisher behavior when this limit is
+   reached is described in Section 4.1.
+
+6.  Messages
+
+   This extension defines four messages.  Each is sent on the
+   subscription's request stream and uses the MOQT control message
+   framing with a 16-bit Length field, as defined for control messages
+   in [MOQT].  None of these messages consumes a Request ID or solicits
+   a response.
+
+6.1.  SUB_FLOW_CONTROL_UPDATE
+
+   A subscriber sends a SUB_FLOW_CONTROL_UPDATE message on the
+   subscription's request stream to grant the publisher additional flow
+   control credit.  It carries the MAX_SUB_STREAMS and/or MAX_SUB_BYTES
+   parameters (Section 5).  A subscriber MAY send it at any time after
+   the subscription is established, whether or not the publisher has
+   signaled that it is blocked.  A subscriber that intends to grant
+   credit therefore MUST keep the send direction of the request stream
+   open ([MOQT]).  A SUB_FLOW_CONTROL_UPDATE received after the
+   subscription has ended has no effect.
+
+   SUB_FLOW_CONTROL_UPDATE Message {
+     Type (vi64) = 0x14,
+     Length (16),
+     Number of Parameters (vi64),
+     Parameters (..) ...,
+   }
+
+               Figure 1: MOQT SUB_FLOW_CONTROL_UPDATE Message
+
+   *  Number of Parameters: The number of parameters that follow.
+
+   *  Parameters: MAX_SUB_STREAMS (Section 5.1) and/or MAX_SUB_BYTES
+      (Section 5.2), each granting additional credit for the
+      corresponding limit.  A SUB_FLOW_CONTROL_UPDATE that carries
+      neither parameter has no effect but is not an error.
+
+6.2.  SUBGROUP_RESET
+
+   A publisher sends a SUBGROUP_RESET message on the subscription's
+   request stream to report the final byte count of a subgroup stream
+   that was reset.  This allows the subscriber to accurately account for
+   bytes consumed against the MAX_SUB_BYTES limit (Section 5.2).
+
+   A publisher MAY send SUBGROUP_RESET for any subscription at its
+   discretion, regardless of whether flow control limits are in use,
+   provided the extension has been negotiated.
+
+   SUBGROUP_RESET Message {
+     Type (vi64) = 0x1F,
+     Length (16),
+     Group ID (vi64),
+     Subgroup ID (vi64),
+     Final Size (vi64),
+   }
+
+                   Figure 2: MOQT SUBGROUP_RESET Message
+
+   *  Group ID: The Group ID of the reset subgroup stream.
+
+   *  Subgroup ID: The Subgroup ID of the reset subgroup stream.
+
+   *  Final Size: The total number of bytes sent on the subgroup stream
+      before it was reset, counted as described in Section 4.2.
+
+6.3.  SUB_STREAMS_BLOCKED
+
+   A publisher sends a SUB_STREAMS_BLOCKED message on the subscription's
+   request stream to signal that it wants to open a subgroup stream but
+   is prevented from doing so by the MAX_SUB_STREAMS limit
+   (Section 5.1).
+
+   SUB_STREAMS_BLOCKED Message {
+     Type (vi64) = 0x12,
+     Length (16),
+     Maximum Streams (vi64),
+   }
+
+                 Figure 3: MOQT SUB_STREAMS_BLOCKED Message
+
+   *  Maximum Streams: The stream limit that was reached.
+
+6.4.  SUB_BYTES_BLOCKED
+
+   A publisher sends a SUB_BYTES_BLOCKED message on the subscription's
+   request stream to signal that it has data it wants to send but is
+   prevented from sending it by the MAX_SUB_BYTES limit (Section 5.2).
+
+   SUB_BYTES_BLOCKED Message {
+     Type (vi64) = 0x13,
+     Length (16),
+     Maximum Bytes (vi64),
+   }
+
+                  Figure 4: MOQT SUB_BYTES_BLOCKED Message
+
+   *  Maximum Bytes: The byte limit that was reached.
+
+7.  Error Handling
+
+   This extension defines the FLOW_CONTROL_EXCEEDED session termination
+   error code.  An endpoint uses it to close the session when the peer
+   violates a subscription flow control limit, as described in
+   Section 4.
+
+   FLOW_CONTROL_EXCEEDED (0x1C):  The peer violated a subscription flow
+      control limit (MAX_SUB_STREAMS or MAX_SUB_BYTES).
+
+8.  Security Considerations
+
+   The limits defined by this extension let a subscriber bound the
+   resources a publisher can consume on its behalf per subscription,
+   which complements the connection- and stream-level flow control
+   provided by the underlying transport.  A subscriber SHOULD set limits
+   consistent with the resources it is willing to devote to a
+   subscription.
+
+   The SUB_STREAMS_BLOCKED and SUB_BYTES_BLOCKED messages are advisory.
+   A subscriber MUST NOT rely on receiving them before a limit is
+   reached, and MUST be prepared to enforce a limit even if the
+   publisher does not signal that it is blocked.  Conversely, a
+   subscriber that grants additional credit only in response to these
+   messages could stall a publisher that does not send them;
+   implementations that wish to avoid this can grant credit proactively.
+
+   Because SUBGROUP_RESET reports a byte count that the subscriber
+   charges against MAX_SUB_BYTES, a misbehaving publisher could report
+   fewer bytes than it actually sent in order to evade the limit.  To
+   prevent this, whenever the subscriber can independently determine the
+   number of bytes sent on a stream (for example, from the QUIC
+   RESET_STREAM Final Size), any discrepancy from the charged value is a
+   PROTOCOL_VIOLATION (Section 4.2).  An endpoint MAY additionally bound
+   resource use with transport-level flow control.
+
+9.  IANA Considerations
+
+   This document registers entries in registries established by [MOQT].
+   All requested codepoints are provisional pending working group
+   adoption and can be reassigned by IANA to avoid collisions with the
+   base protocol or other extensions.
+
+9.1.  Setup Option
+
+   IANA is requested to add the following entry to the "MOQT Setup
+   Options" registry:
+
+           +======+===========================+===============+
+           | Type | Name                      | Specification |
+           +======+===========================+===============+
+           | 0x0A | SUBSCRIPTION_FLOW_CONTROL | Section 3.1   |
+           +------+---------------------------+---------------+
+
+                                 Table 1
+
+9.2.  Message Parameters
+
+   IANA is requested to add the following entries to the "MOQT Message
+   Parameters" registry:
+
+           +================+=================+===============+
+           | Parameter Type | Parameter Name  | Specification |
+           +================+=================+===============+
+           |           0x33 | MAX_SUB_STREAMS | Section 5.1   |
+           +----------------+-----------------+---------------+
+           |           0x36 | MAX_SUB_BYTES   | Section 5.2   |
+           +----------------+-----------------+---------------+
+
+                                 Table 2
+
+9.3.  Message Types
+
+   IANA is requested to add the following entries to the "MOQT Message
+   Types" registry.  All four messages are sent on the request stream
+   and none is the first message on a stream.
+
+        +======+=======================================+=========+
+        |   ID | Messages                              | Stream  |
+        +======+=======================================+=========+
+        | 0x12 | SUB_STREAMS_BLOCKED (Section 6.3)     | Request |
+        +------+---------------------------------------+---------+
+        | 0x13 | SUB_BYTES_BLOCKED (Section 6.4)       | Request |
+        +------+---------------------------------------+---------+
+        | 0x14 | SUB_FLOW_CONTROL_UPDATE (Section 6.1) | Request |
+        +------+---------------------------------------+---------+
+        | 0x1F | SUBGROUP_RESET (Section 6.2)          | Request |
+        +------+---------------------------------------+---------+
+
+                                 Table 3
+
+9.4.  Session Termination Error Code
+
+   IANA is requested to add the following entry to the "MOQT Session
+   Termination Error Codes" registry:
+
+             +=======================+======+===============+
+             | Name                  | Code | Specification |
+             +=======================+======+===============+
+             | FLOW_CONTROL_EXCEEDED | 0x1C | Section 7     |
+             +-----------------------+------+---------------+
+
+                                 Table 4
+
+10.  References
+
+10.1.  Normative References
+
+   [MOQT]     Nandakumar, S., Vasiliev, V., Swett, I., and A. Frindell,
+              "Media over QUIC Transport", Work in Progress, Internet-
+              Draft, draft-ietf-moq-transport-22, 1 October 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
+              transport-22>.
+
+   [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
+              Multiplexed and Secure Transport", RFC 9000,
+              DOI 10.17487/RFC9000, May 2021,
+              <https://www.rfc-editor.org/rfc/rfc9000>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+10.2.  Informative References
+
+   [WebTransport]
+              Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
+              over HTTP/3", Work in Progress, Internet-Draft, draft-
+              ietf-webtrans-http3-16, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-
+              webtrans-http3-16>.
+
+Acknowledgments
+
+   This extension is derived from a proposal to add subscription flow
+   control to the base Media over QUIC Transport protocol.
+
+   The initial conversion of that proposal into this extension draft was
+   drafted with the assistance of Claude Code.
+
+Authors' Addresses
+
+   Alan Frindell (editor)
+   Meta
+   Email: afrind@meta.com
+
+
+   Ian Swett (editor)
+   Google
+   Email: ianswett@google.com
