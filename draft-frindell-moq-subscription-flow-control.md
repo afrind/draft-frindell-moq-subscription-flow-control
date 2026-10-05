@@ -19,11 +19,11 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
-category: info
+title: "Subscription Flow Control Extension for Media over QUIC Transport"
+abbrev: "moq-sub-flow-control"
+category: std
 
-docname: draft-todo-yourname-protocol-latest
+docname: draft-frindell-moq-subscription-flow-control-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
