@@ -212,6 +212,10 @@ publisher is blocked, so a subscriber that intends to grant credit MUST keep the
 send direction of the request stream open. It has no effect if received after
 the subscription ends.
 
+Each parameter value is a delta to the current limit, so limits never decrease.
+When a publisher receives a SUB_FLOW_CONTROL_UPDATE with a delta of 0, it closes
+the session with a `PROTOCOL_VIOLATION`.
+
 ~~~
 SUB_FLOW_CONTROL_UPDATE Message {
   Type (vi64) = 0x14,
