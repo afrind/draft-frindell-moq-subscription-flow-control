@@ -127,6 +127,13 @@ bytes sent across them ({{byte-accounting}}). A publisher MUST NOT exceed a
 limit in effect for a subscription. An endpoint that detects a violation MUST
 close the session with `FLOW_CONTROL_EXCEEDED` ({{errors}}).
 
+The subscriber attributes each subgroup stream to a subscription by its Track
+Alias, so when the extension is negotiated, a publisher MUST NOT assign the same
+Track Alias to more than one subscription in the session, even if the
+subscriptions are to the same Track or are not concurrent. When a subscriber
+detects a SUBSCRIBE_OK or PUBLISH with a Track Alias previously assigned to
+another subscription, it MUST close the session with a `DUPLICATE_TRACK_ALIAS`.
+
 ## Stream Sequence {#stream-sequence}
 
 When the extension is negotiated, every SUBGROUP_HEADER includes a Stream
