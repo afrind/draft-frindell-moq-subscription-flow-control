@@ -5,8 +5,8 @@
 Media Over QUIC                                         A. Frindell, Ed.
 Internet-Draft                                                      Meta
 Intended status: Standards Track                           I. Swett, Ed.
-Expires: 8 April 2027                                             Google
-                                                          5 October 2026
+Expires: 9 April 2027                                             Google
+                                                          6 October 2026
 
 
    Subscription Flow Control Extension for Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 April 2027.
+   This Internet-Draft will expire on 9 April 2027.
 
 Copyright Notice
 
@@ -268,6 +268,10 @@ Table of Contents
    that intends to grant credit MUST keep the send direction of the
    request stream open.  It has no effect if received after the
    subscription ends.
+
+   Each parameter value is a delta to the current limit, so limits never
+   decrease.  When a publisher receives a SUB_FLOW_CONTROL_UPDATE with a
+   delta of 0, it closes the session with a PROTOCOL_VIOLATION.
 
    SUB_FLOW_CONTROL_UPDATE Message {
      Type (vi64) = 0x14,
