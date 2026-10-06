@@ -1341,6 +1341,12 @@ is the total number of subgroup streams opened, and the byte count is the total
 bytes sent across them (<a href="#byte-accounting" class="auto internal xref">Section 4.3</a>). A publisher <span class="bcp14">MUST NOT</span> exceed a
 limit in effect for a subscription. An endpoint that detects a violation <span class="bcp14">MUST</span>
 close the session with <code>FLOW_CONTROL_EXCEEDED</code> (<a href="#errors" class="auto internal xref">Section 7</a>).<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">The subscriber attributes each subgroup stream to a subscription by its Track
+Alias, so when the extension is negotiated, a publisher <span class="bcp14">MUST NOT</span> assign the same
+Track Alias to more than one subscription in the session, even if the
+subscriptions are to the same Track or are not concurrent. When a subscriber
+detects a SUBSCRIBE_OK or PUBLISH with a Track Alias previously assigned to
+another subscription, it <span class="bcp14">MUST</span> close the session with a <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-4-4" class="pilcrow">¶</a></p>
 <div id="stream-sequence">
 <section id="section-4.1">
         <h3 id="name-stream-sequence">
