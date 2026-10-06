@@ -224,7 +224,7 @@ SUB_FLOW_CONTROL_UPDATE Message {
 
 * Parameters: MAX_SUB_STREAMS and/or MAX_SUB_BYTES, each granting additional
   credit. When a publisher receives a SUB_FLOW_CONTROL_UPDATE with neither
-  parameter, it closes the session with a `PROTOCOL_VIOLATION`.
+  parameter, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ## SUBGROUP_RESET {#message-subgroup-reset}
 
