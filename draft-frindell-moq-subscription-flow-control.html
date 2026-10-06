@@ -1467,7 +1467,8 @@ SUB_FLOW_CONTROL_UPDATE Message {
 <ul class="normal">
 <li class="normal" id="section-6.1-4.1">
             <p id="section-6.1-4.1.1">Parameters: MAX_SUB_STREAMS and/or MAX_SUB_BYTES, each granting additional
-credit. A message carrying neither has no effect but is not an error.<a href="#section-6.1-4.1.1" class="pilcrow">¶</a></p>
+credit. When a publisher receives a SUB_FLOW_CONTROL_UPDATE with neither
+parameter, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-6.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
