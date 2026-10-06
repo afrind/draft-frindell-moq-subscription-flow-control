@@ -1,0 +1,377 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2026-10-06T04:03:58.423010+00:00",
+  "repo": "afrind/draft-frindell-moq-subscription-flow-control",
+  "labels": [
+    {
+      "name": "accessibility",
+      "description": "Barrier affecting people with disabilities",
+      "color": "f143ab"
+    },
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOU86eg88AAAABGwJfLA",
+      "title": "Condense draft text without changing protocol behavior",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/1",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-10-05T16:42:35Z",
+      "updatedAt": "2026-10-05T21:03:19Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "91e4b9dac5c3adb9a1167e69b3e3980b6fd5c909",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "condense-draft",
+      "headRefOid": "bab78789aad12d568dd223372bf0cfc2ab750060",
+      "closedAt": "2026-10-05T21:03:16Z",
+      "mergedAt": "2026-10-05T21:03:16Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "cc3decf8efd949e30b43a3e337581327b5df210f"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOU86eg88AAAABQwdzqA",
+          "commit": {
+            "abbreviatedOid": "1915ed8"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-05T19:26:21Z",
+          "updatedAt": "2026-10-05T19:26:22Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "```suggestion\npublisher may send for an individual subscription. It defines a Setup Option\nto negotiate the extension, message parameters for advertising these limits,\nmessages for granting credit and signaling flow control state, and a\nsession error code.\n```",
+              "createdAt": "2026-10-05T19:26:21Z",
+              "updatedAt": "2026-10-05T19:26:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOU86eg88AAAABQwd_ag",
+          "commit": {
+            "abbreviatedOid": "1915ed8"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "The shorter version is mostly better I think, I left a few suggestions.",
+          "createdAt": "2026-10-05T19:26:39Z",
+          "updatedAt": "2026-10-05T19:49:37Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "If you're going to mention the other things, I'd mention the Setup Option?",
+              "createdAt": "2026-10-05T19:26:39Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 32,
+              "body": "Since this can be WebTransport, I think stream and session are the best terms?\n\n```suggestion\nTransport-layer flow control operates per stream and per session, so it\n```",
+              "createdAt": "2026-10-05T19:27:42Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 55,
+              "body": "I might keep this paragraph?",
+              "createdAt": "2026-10-05T19:28:43Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 106,
+              "body": "Is there a procedure?\r\n\r\n```suggestion\r\noption, per the extension negotiation described in {{MOQT}}. It applies to both\r\n```",
+              "createdAt": "2026-10-05T19:30:46Z",
+              "updatedAt": "2026-10-05T20:02:38Z"
+            },
+            {
+              "originalPosition": 117,
+              "body": "```suggestion\nA subscriber sets a subscription's initial limits by including the MAX_SUB_STREAMS\nand/or MAX_SUB_BYTES Parameters in the SUBSCRIBE or PUBLISH_OK that establishes it.\n```",
+              "createdAt": "2026-10-05T19:31:22Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 118,
+              "body": "```suggestion\nThe subscriber grants additional credit with SUB_FLOW_CONTROL_UPDATE\n```",
+              "createdAt": "2026-10-05T19:32:05Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 119,
+              "body": "```suggestion\n({{message-sub-flow-control-update}}). The two limits are independent; a\n```",
+              "createdAt": "2026-10-05T19:32:33Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 122,
+              "body": "```suggestion\nREQUEST_UPDATE because it solicits a response, which is unnecessary.\n```",
+              "createdAt": "2026-10-05T19:33:03Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 156,
+              "body": "```suggestion\nthis means stopping in the middle of a stream. It retains the blocked Objects\n```",
+              "createdAt": "2026-10-05T19:35:44Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 213,
+              "body": "charge is a weird word, even if we do use 'accounting'.",
+              "createdAt": "2026-10-05T19:37:31Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 218,
+              "body": "This starts becoming pretty important I realized.  But only if we had Stream IDs...",
+              "createdAt": "2026-10-05T19:38:46Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 224,
+              "body": "Also it'd be wrong because of the extra WebTransport header, right?",
+              "createdAt": "2026-10-05T19:39:40Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 307,
+              "body": "I think it should appear in SUBSCRIBE_TRACKS and then echo'd in PUBLISH.  But we might want to include defaults in the Setup Option, particularly for cases like PUBLISH without SUBSCRIBE_TRACKS?\n\n```suggestion\nSUBSCRIBE or PUBLISH that establishes a subscription, where it sets the\n```",
+              "createdAt": "2026-10-05T19:41:16Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 376,
+              "body": "I think it'd be better to make it an error to include neither parameter, because why do this otherwise?",
+              "createdAt": "2026-10-05T19:47:00Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            },
+            {
+              "originalPosition": 357,
+              "body": "Here or elsewhere don't we need to say that MAX_SUB_STREAMS and MAX_SUB_BYTES MUST always increase within a Subscription?  Alternatively, we could make them deltas for encoding purposes.",
+              "createdAt": "2026-10-05T19:48:49Z",
+              "updatedAt": "2026-10-05T19:49:37Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "id": "PR_kwDOU86eg88AAAABGxvNug",
+      "title": "Abstract and intro",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/2",
+      "state": "CLOSED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Some small suggestions",
+      "createdAt": "2026-10-05T19:20:12Z",
+      "updatedAt": "2026-10-06T00:28:36Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "91e4b9dac5c3adb9a1167e69b3e3980b6fd5c909",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "ianswett-abtract-edits",
+      "headRefOid": "eecff722ea8a414ab2a05a3edcb2e8c7dfc5011a",
+      "closedAt": "2026-10-06T00:28:32Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "OWNER",
+          "body": "OBE",
+          "createdAt": "2026-10-06T00:28:32Z",
+          "updatedAt": "2026-10-06T00:28:32Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 3,
+      "id": "PR_kwDOU86eg88AAAABG0KrqQ",
+      "title": "Add Setup Options for initial subscription flow control limits",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/3",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Addresses review feedback on PR #1 about subscriptions created by a PUBLISH that was not in response to SUBSCRIBE_TRACKS.\r\n\r\n* Add INITIAL_MAX_SUB_STREAMS (0x0C) and INITIAL_MAX_SUB_BYTES (0x0E) Setup Options. If omitted, the initial limit is 0.\r\n* Both limits now always apply when the extension is negotiated. SUBSCRIBE or SUBSCRIBE_TRACKS can override an initial limit, including with a smaller value; PUBLISH echoes the SUBSCRIBE_TRACKS value.\r\n* Remove the rule that a limit absent at establishment does not apply, which contradicted the zero-credit default for PUBLISH.",
+      "createdAt": "2026-10-06T00:08:19Z",
+      "updatedAt": "2026-10-06T00:08:19Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "initial-limit-setup-options",
+      "headRefOid": "7ee7a128d1c969bf8933a9c862f18ddeb78fac8b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 4,
+      "id": "PR_kwDOU86eg88AAAABG0UHEA",
+      "title": "Make an empty SUB_FLOW_CONTROL_UPDATE a protocol violation",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/4",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Addresses review feedback on PR #1: a SUB_FLOW_CONTROL_UPDATE that carries neither MAX_SUB_STREAMS nor MAX_SUB_BYTES serves no purpose, so a publisher that receives one now closes the session with a PROTOCOL_VIOLATION instead of ignoring it.",
+      "createdAt": "2026-10-06T00:28:21Z",
+      "updatedAt": "2026-10-06T00:28:21Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "empty-update-error",
+      "headRefOid": "e6c64dd8c933764b4f326b927be44fe92ecf13d9",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 5,
+      "id": "PR_kwDOU86eg88AAAABG0anWg",
+      "title": "Clarify that credit updates are deltas and forbid a delta of 0",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/5",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Addresses review feedback on PR #1 asking whether limits must always increase. SUB_FLOW_CONTROL_UPDATE values were already added to the current limit; state that explicitly so limits never decrease.\r\n\r\nAs in HTTP/2 WINDOW_UPDATE, a publisher that receives an update with a delta of 0 closes the session with a PROTOCOL_VIOLATION.",
+      "createdAt": "2026-10-06T00:42:58Z",
+      "updatedAt": "2026-10-06T00:42:58Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "explicit-credit-deltas",
+      "headRefOid": "7af3934b42ec413bde1e6e03748c8b5707d77e6d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 6,
+      "id": "PR_kwDOU86eg88AAAABG0j7sg",
+      "title": "Require reliable reset and add Stream Sequence to subgroup streams",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/6",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Addresses review feedback on PR #1 about correlating SUBGROUP_RESET with the reset stream. Group ID and Subgroup ID are not sufficient: a stream reset before its header arrives is unidentifiable, and a publisher can open more than one stream for the same subgroup.\r\n\r\n* Endpoints offering the extension MUST support RESET_STREAM_AT, and publishers MUST reset subgroup streams with a reliable_size covering the SUBGROUP_HEADER.\r\n* When the extension is negotiated, SUBGROUP_HEADER includes a per-subscription Stream Sequence. SUBGROUP_RESET identifies the stream by Stream Sequence instead of Group ID and Subgroup ID.\r\n* A Stream Sequence at or above the stream limit is FLOW_CONTROL_EXCEEDED; a detected duplicate is a PROTOCOL_VIOLATION.",
+      "createdAt": "2026-10-06T01:03:47Z",
+      "updatedAt": "2026-10-06T01:07:48Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "require-reliable-reset",
+      "headRefOid": "e85255d01991ca89f8fff11fd0fb8e2d6ded58b8",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 7,
+      "id": "PR_kwDOU86eg88AAAABG0rf4A",
+      "title": "Apply the Final Size check whenever the transport reports it",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/7",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Addresses review feedback on PR #1 about WebTransport and the Final Size cross-check. WebTransport implementations do not necessarily expose a reset stream's final size; when the transport does report it, a mismatch with SUBGROUP_RESET is a PROTOCOL_VIOLATION.\r\n\r\n* Drop the FIN case, which never produces a SUBGROUP_RESET to check.\r\n* Trim the Security Considerations paragraph to describe the threat and point to Byte Accounting instead of restating the rule.",
+      "createdAt": "2026-10-06T01:20:56Z",
+      "updatedAt": "2026-10-06T01:20:56Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "webtransport-final-size",
+      "headRefOid": "0193b2e8981e459f6d999c3b5e11d4f9ce5b2164",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    }
+  ]
+}
