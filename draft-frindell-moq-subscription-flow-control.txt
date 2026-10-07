@@ -17,10 +17,10 @@ Abstract
    This document defines an extension to Media over QUIC Transport
    (MOQT) that lets a subscriber limit the number of subgroup streams
    and the total bytes a publisher may send for an individual
-   subscription.  It defines a Setup Option to negotiate the extension,
-   message parameters for advertising these limits, messages for
-   granting credit and signaling flow control state, and a session error
-   code.
+   subscription.  It defines a Setup Option to negotiate the extension
+   and set initial limits, message parameters for advertising these
+   limits, messages for granting credit and signaling flow control
+   state, and a session error code.
 
 About This Document
 
@@ -141,9 +141,26 @@ Table of Contents
 3.1.  SUBSCRIPTION_FLOW_CONTROL Setup Option
 
    An endpoint indicates support for this extension by including the
-   SUBSCRIPTION_FLOW_CONTROL Setup Option (Option Type 0x0A) in its
-   SETUP message.  Its value is a single varint that is reserved;
-   senders SHOULD set it to 0 and receivers MUST ignore it.
+   SUBSCRIPTION_FLOW_CONTROL Setup Option in its SETUP message.  The
+   option also sets the initial limits for subscriptions in which the
+   endpoint is the subscriber (Section 4).
+
+   SUBSCRIPTION_FLOW_CONTROL Setup Option {
+     Option Type (vi64) = 0x0B,
+     Length (vi64),
+     Initial Max Sub Streams (vi64),
+     Initial Max Sub Bytes (vi64),
+   }
+
+              Figure 1: SUBSCRIPTION_FLOW_CONTROL Setup Option
+
+   *  Initial Max Sub Streams: The initial MAX_SUB_STREAMS limit.
+
+   *  Initial Max Sub Bytes: The initial MAX_SUB_BYTES limit.
+
+   When an endpoint receives a SUBSCRIPTION_FLOW_CONTROL Setup Option
+   whose value does not contain exactly two varints, it MUST close the
+   session with a KEY_VALUE_FORMATTING_ERROR.
 
    The extension is negotiated when an endpoint has both sent and
    received this option, per the extension negotiation described in
@@ -156,15 +173,12 @@ Table of Contents
 
 4.  Flow Control Model
 
-   A subscriber sets a subscription's initial limits by including the
-   MAX_SUB_STREAMS and/or MAX_SUB_BYTES Parameters in the control
-   message that establishes it: SUBSCRIBE or SUBSCRIBE_TRACKS.
-   Subscriptions initiated by a PUBLISH that are not in response to a
-   SUBSCRIBE_TRACKS start with no flow control credit.  The subscriber
-   grants additional credit with SUB_FLOW_CONTROL_UPDATE (Section 6.1).
-   The two limits are independent; a subscription MAY use either, both,
-   or neither.  Credit is not granted with REQUEST_UPDATE because it
-   solicits a response, which is unnecessary.
+   Every subscription has a stream limit and a byte limit, initialized
+   from the subscriber's SUBSCRIPTION_FLOW_CONTROL Setup Option
+   (Section 3.1), which SUBSCRIBE or SUBSCRIBE_TRACKS can override
+   (Section 5).  The subscriber grants additional credit with
+   SUB_FLOW_CONTROL_UPDATE (Section 6.1).  Credit is not granted with
+   REQUEST_UPDATE because it solicits a response, which is unnecessary.
 
    The limits apply only to subgroup streams; Objects sent as datagrams
    are not counted.  Limits and the messages defined here are scoped to
@@ -201,7 +215,7 @@ Table of Contents
      Stream Sequence (vi64),
    }
 
-               Figure 1: SUBGROUP_HEADER with Stream Sequence
+               Figure 2: SUBGROUP_HEADER with Stream Sequence
 
    Stream Sequence uniquely identifies a subgroup stream within its
    subscription.  The publisher sets it to 0 on the first subgroup
@@ -276,16 +290,14 @@ Table of Contents
 
 5.  Message Parameters
 
-   This extension defines two Message Parameters ([MOQT]).  Each MAY
-   appear in the SUBSCRIBE or SUBSCRIBE_TRACKS, where it sets the
-   initial limit for the subscription, or in a SUB_FLOW_CONTROL_UPDATE,
-   where it is added to the current limit.
+   This extension defines two Message Parameters ([MOQT]).  If set in
+   SUBSCRIBE or SUBSCRIBE_TRACKS, each parameter overrides the initial
+   limit (Section 3.1), even if the value is smaller.  In PUBLISH, it
+   echoes the value from the corresponding SUBSCRIBE_TRACKS.  When sent
+   in SUB_FLOW_CONTROL_UPDATE, the value is added to the current limit.
 
-   A cumulative limit MUST NOT exceed 2^64-1.  If a parameter is absent
-   when the subscription is established, that limit does not apply and a
-   later SUB_FLOW_CONTROL_UPDATE MUST NOT include it.  An endpoint that
-   receives a SUB_FLOW_CONTROL_UPDATE violating either rule MUST close
-   the session with PROTOCOL_VIOLATION.
+   A SUB_FLOW_CONTROL_UPDATE MUST NOT raise a limit above 2^64-1;
+   receiving one that does is a PROTOCOL_VIOLATION.
 
 5.1.  MAX_SUB_STREAMS Parameter
 
@@ -325,7 +337,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-               Figure 2: MOQT SUB_FLOW_CONTROL_UPDATE Message
+               Figure 3: MOQT SUB_FLOW_CONTROL_UPDATE Message
 
    *  Parameters: MAX_SUB_STREAMS and/or MAX_SUB_BYTES, each granting
       additional credit.  When a publisher receives a
@@ -346,7 +358,7 @@ Table of Contents
      Final Size (vi64),
    }
 
-                   Figure 3: MOQT SUBGROUP_RESET Message
+                   Figure 4: MOQT SUBGROUP_RESET Message
 
    *  Stream Sequence: The Stream Sequence of the reset subgroup stream
       (Section 4.1).
@@ -364,7 +376,7 @@ Table of Contents
      Maximum Streams (vi64),
    }
 
-                 Figure 4: MOQT SUB_STREAMS_BLOCKED Message
+                 Figure 5: MOQT SUB_STREAMS_BLOCKED Message
 
    *  Maximum Streams: The stream limit that was reached.
 
@@ -379,7 +391,7 @@ Table of Contents
      Maximum Bytes (vi64),
    }
 
-                  Figure 5: MOQT SUB_BYTES_BLOCKED Message
+                  Figure 6: MOQT SUB_BYTES_BLOCKED Message
 
    *  Maximum Bytes: The byte limit that was reached.
 
@@ -421,7 +433,7 @@ Table of Contents
            +======+===========================+===============+
            | Type | Name                      | Specification |
            +======+===========================+===============+
-           | 0x0A | SUBSCRIPTION_FLOW_CONTROL | Section 3.1   |
+           | 0x0B | SUBSCRIPTION_FLOW_CONTROL | Section 3.1   |
            +------+---------------------------+---------------+
 
                                  Table 1
