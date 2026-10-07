@@ -44,7 +44,6 @@ author:
 
 normative:
   MOQT: I-D.ietf-moq-transport
-  QUIC: RFC9000
   RELIABLE-RESET: I-D.ietf-quic-reliable-stream-reset
 
 informative:
@@ -199,8 +198,8 @@ reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
 learns the stream's Stream Sequence ({{stream-sequence}}) and can match it to
 the corresponding SUBGROUP_RESET.
 
-On native QUIC, this Final Size equals that of RESET_STREAM
-({{Section 19.4 of QUIC}}) or RESET_STREAM_AT. WebTransport ({{WebTransport}})
+On native QUIC, this Final Size equals that of RESET_STREAM_AT
+({{RELIABLE-RESET}}). WebTransport ({{WebTransport}})
 implementations do not necessarily expose the transport Final Size. When a
 subscriber receives a SUBGROUP_RESET whose Final Size does not match the one
 reported by the transport, it MUST close the session with a
