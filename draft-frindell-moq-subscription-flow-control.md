@@ -148,19 +148,19 @@ stop at the byte limit, leaving the stream open and resuming when credit
 arrives, subject to the delivery timeout and ordering rules of {{MOQT}}.
 
 Each subgroup stream is charged exactly once. For a stream closed with a FIN,
-the subscriber charges the bytes it received. When a publisher resets a stream,
+the subscriber charges the bytes it received.
+
+When a publisher resets a stream,
 it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
 ({{message-subgroup-reset}}), and the subscriber charges that value. Because a
 publisher never has more than one open subgroup stream with the same Group ID
 and Subgroup ID ({{MOQT}}), the subscriber can correlate each SUBGROUP_RESET
-with its stream.
-
-On native QUIC, this Final Size duplicates that of RESET_STREAM
-({{Section 19.4 of QUIC}}), but WebTransport ({{WebTransport}})
-implementations do not necessarily expose it. If the subscriber can
-independently determine the bytes sent on a stream (from RESET_STREAM or a FIN)
-and that differs from the value reported or otherwise charged, it MUST close the
-session with `PROTOCOL_VIOLATION`.
+with its stream. On native QUIC, this Final Size equals that of RESET_STREAM
+({{Section 19.4 of QUIC}}) or RESET_STREAM_AT. WebTransport ({{WebTransport}})
+implementations do not necessarily expose the transport Final Size. When a
+subscriber receives a SUBGROUP_RESET whose Final Size does not match the one
+reported by the transport, it MUST close the session with a
+`PROTOCOL_VIOLATION`.
 
 For example, with 100 bytes of credit and a 200-byte Object:
 
@@ -301,9 +301,8 @@ grants credit only in response to them could stall a publisher that does not
 send them; granting credit proactively avoids this.
 
 A misbehaving publisher could under-report Final Size in SUBGROUP_RESET to
-evade MAX_SUB_BYTES. Where the subscriber can independently determine the bytes
-sent, a discrepancy is a `PROTOCOL_VIOLATION` ({{byte-accounting}}). An
-endpoint MAY additionally use transport-level flow control.
+evade MAX_SUB_BYTES; {{byte-accounting}} describes how a subscriber detects this
+when the transport reports the stream's Final Size.
 
 # IANA Considerations
 
