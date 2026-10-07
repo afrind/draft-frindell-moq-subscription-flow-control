@@ -188,7 +188,9 @@ stop at the byte limit, leaving the stream open and resuming when credit
 arrives, subject to the delivery timeout and ordering rules of {{MOQT}}.
 
 Each subgroup stream is charged exactly once. For a stream closed with a FIN,
-the subscriber charges the bytes it received. When a publisher resets a stream,
+the subscriber charges the bytes it received.
+
+When a publisher resets a stream,
 it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
 ({{message-subgroup-reset}}), and the subscriber charges that value.
 
@@ -197,12 +199,12 @@ reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
 learns the stream's Stream Sequence ({{stream-sequence}}) and can match it to
 the corresponding SUBGROUP_RESET.
 
-On native QUIC, this Final Size duplicates that of RESET_STREAM
-({{Section 19.4 of QUIC}}), but WebTransport ({{WebTransport}})
-implementations do not necessarily expose it. If the subscriber can
-independently determine the bytes sent on a stream (from RESET_STREAM or a FIN)
-and that differs from the value reported or otherwise charged, it MUST close the
-session with `PROTOCOL_VIOLATION`.
+On native QUIC, this Final Size equals that of RESET_STREAM
+({{Section 19.4 of QUIC}}) or RESET_STREAM_AT. WebTransport ({{WebTransport}})
+implementations do not necessarily expose the transport Final Size. When a
+subscriber receives a SUBGROUP_RESET whose Final Size does not match the one
+reported by the transport, it MUST close the session with a
+`PROTOCOL_VIOLATION`.
 
 For example, with 100 bytes of credit and a 200-byte Object:
 
@@ -254,6 +256,10 @@ publisher is blocked, so a subscriber that intends to grant credit MUST keep the
 send direction of the request stream open. It has no effect if received after
 the subscription ends.
 
+Each parameter value is a delta to the current limit, so limits never decrease.
+When a publisher receives a SUB_FLOW_CONTROL_UPDATE with a delta of 0, it closes
+the session with a `PROTOCOL_VIOLATION`.
+
 ~~~
 SUB_FLOW_CONTROL_UPDATE Message {
   Type (vi64) = 0x14,
@@ -265,7 +271,8 @@ SUB_FLOW_CONTROL_UPDATE Message {
 {: #moq-transport-sub-flow-control-update-format title="MOQT SUB_FLOW_CONTROL_UPDATE Message"}
 
 * Parameters: MAX_SUB_STREAMS and/or MAX_SUB_BYTES, each granting additional
-  credit. A message carrying neither has no effect but is not an error.
+  credit. When a publisher receives a SUB_FLOW_CONTROL_UPDATE with neither
+  parameter, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ## SUBGROUP_RESET {#message-subgroup-reset}
 
@@ -338,9 +345,8 @@ grants credit only in response to them could stall a publisher that does not
 send them; granting credit proactively avoids this.
 
 A misbehaving publisher could under-report Final Size in SUBGROUP_RESET to
-evade MAX_SUB_BYTES. Where the subscriber can independently determine the bytes
-sent, a discrepancy is a `PROTOCOL_VIOLATION` ({{byte-accounting}}). An
-endpoint MAY additionally use transport-level flow control.
+evade MAX_SUB_BYTES; {{byte-accounting}} describes how a subscriber detects this
+when the transport reports the stream's Final Size.
 
 # IANA Considerations
 
