@@ -5,8 +5,8 @@
 Media Over QUIC                                         A. Frindell, Ed.
 Internet-Draft                                                      Meta
 Intended status: Standards Track                           I. Swett, Ed.
-Expires: 9 April 2027                                             Google
-                                                          6 October 2026
+Expires: 10 April 2027                                            Google
+                                                          7 October 2026
 
 
    Subscription Flow Control Extension for Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 April 2027.
+   This Internet-Draft will expire on 10 April 2027.
 
 Copyright Notice
 
@@ -205,19 +205,19 @@ Table of Contents
    ordering rules of [MOQT].
 
    Each subgroup stream is charged exactly once.  For a stream closed
-   with a FIN, the subscriber charges the bytes it received.  When a
-   publisher resets a stream, it reports the bytes sent on it in the
-   Final Size field of SUBGROUP_RESET (Section 6.2), and the subscriber
-   charges that value.  Because a publisher never has more than one open
-   subgroup stream with the same Group ID and Subgroup ID ([MOQT]), the
-   subscriber can correlate each SUBGROUP_RESET with its stream.
+   with a FIN, the subscriber charges the bytes it received.
 
-   On native QUIC, this Final Size equals that of RESET_STREAM
-   (Section 19.4 of [QUIC]).  WebTransport ([WebTransport])
-   implementations do not necessarily expose the transport Final Size.
-   When a subscriber receives a SUBGROUP_RESET whose Final Size does not
-   match the one reported by the transport, it MUST close the session
-   with a PROTOCOL_VIOLATION.
+   When a publisher resets a stream, it reports the bytes sent on it in
+   the Final Size field of SUBGROUP_RESET (Section 6.2), and the
+   subscriber charges that value.  Because a publisher never has more
+   than one open subgroup stream with the same Group ID and Subgroup ID
+   ([MOQT]), the subscriber can correlate each SUBGROUP_RESET with its
+   stream.  On native QUIC, this Final Size equals that of RESET_STREAM
+   (Section 19.4 of [QUIC]) or RESET_STREAM_AT.  WebTransport
+   ([WebTransport]) implementations do not necessarily expose the
+   transport Final Size.  When a subscriber receives a SUBGROUP_RESET
+   whose Final Size does not match the one reported by the transport, it
+   MUST close the session with a PROTOCOL_VIOLATION.
 
    For example, with 100 bytes of credit and a 200-byte Object:
 
