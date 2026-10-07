@@ -202,12 +202,12 @@ Accounting is at byte granularity. A publisher MAY send part of an Object and
 stop at the byte limit, leaving the stream open and resuming when credit
 arrives, subject to the delivery timeout and ordering rules of {{MOQT}}.
 
-Each subgroup stream is charged exactly once. For a stream closed with a FIN,
-the subscriber charges the bytes it received.
+Each subgroup stream consumes byte credit exactly once. For a stream closed
+with a FIN, the bytes received consume credit.
 
 When a publisher resets a stream,
 it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
-({{message-subgroup-reset}}), and the subscriber charges that value.
+({{message-subgroup-reset}}), and the stream consumes that much credit.
 
 A publisher MUST reset subgroup streams using RESET_STREAM_AT with a
 reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
@@ -230,7 +230,7 @@ For example, with 100 bytes of credit and a 200-byte Object:
 2. The Object's delivery timeout expires.
 3. Publisher resets the stream and sends SUBGROUP_RESET with
    Final Size = 100.
-4. Subscriber charges 100 bytes: limit reached, not exceeded.
+4. The stream consumes 100 bytes of credit: limit reached, not exceeded.
 ~~~
 
 # Message Parameters {#parameters}
