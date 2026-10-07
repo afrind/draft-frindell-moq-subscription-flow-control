@@ -1436,11 +1436,11 @@ header fields and payload. It excludes QUIC and WebTransport framing.<a href="#s
 <p id="section-4.3-2">Accounting is at byte granularity. A publisher <span class="bcp14">MAY</span> send part of an Object and
 stop at the byte limit, leaving the stream open and resuming when credit
 arrives, subject to the delivery timeout and ordering rules of <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
-<p id="section-4.3-3">Each subgroup stream is charged exactly once. For a stream closed with a FIN,
-the subscriber charges the bytes it received.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">Each subgroup stream consumes byte credit exactly once. For a stream closed
+with a FIN, the bytes received consume credit.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 <p id="section-4.3-4">When a publisher resets a stream,
 it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
-(<a href="#message-subgroup-reset" class="auto internal xref">Section 6.2</a>), and the subscriber charges that value.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+(<a href="#message-subgroup-reset" class="auto internal xref">Section 6.2</a>), and the stream consumes that much credit.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 <p id="section-4.3-5">A publisher <span class="bcp14">MUST</span> reset subgroup streams using RESET_STREAM_AT with a
 reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
 learns the stream's Stream Sequence (<a href="#stream-sequence" class="auto internal xref">Section 4.1</a>) and can match it to
@@ -1460,7 +1460,7 @@ reported by the transport, it <span class="bcp14">MUST</span> close the session 
 2. The Object's delivery timeout expires.
 3. Publisher resets the stream and sends SUBGROUP_RESET with
    Final Size = 100.
-4. Subscriber charges 100 bytes: limit reached, not exceeded.
+4. The stream consumes 100 bytes of credit: limit reached, not exceeded.
 </pre><a href="#section-4.3-8" class="pilcrow">¶</a>
 </div>
 </section>
