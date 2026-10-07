@@ -53,10 +53,10 @@ informative:
 
 This document defines an extension to Media over QUIC Transport (MOQT) that
 lets a subscriber limit the number of subgroup streams and the total bytes a
-publisher may send for an individual subscription. It defines a Setup Option
-to negotiate the extension, message parameters for advertising these limits,
-messages for granting credit and signaling flow control state, and a
-session error code.
+publisher may send for an individual subscription. It defines a Setup Option to
+negotiate the extension and set initial limits, message parameters for
+advertising these limits, messages for granting credit and signaling flow
+control state, and a session error code.
 
 --- middle
 
@@ -91,9 +91,27 @@ endpoint is the client or server.
 ## SUBSCRIPTION_FLOW_CONTROL Setup Option {#setup-option}
 
 An endpoint indicates support for this extension by including the
-SUBSCRIPTION_FLOW_CONTROL Setup Option (Option Type 0x0A) in its SETUP message.
-Its value is a single varint that is reserved; senders SHOULD set it to 0 and
-receivers MUST ignore it.
+SUBSCRIPTION_FLOW_CONTROL Setup Option in its SETUP message. The option also
+sets the initial limits for subscriptions in which the endpoint is the
+subscriber ({{model}}).
+
+~~~
+SUBSCRIPTION_FLOW_CONTROL Setup Option {
+  Option Type (vi64) = 0x0B,
+  Length (vi64),
+  Initial Max Sub Streams (vi64),
+  Initial Max Sub Bytes (vi64),
+}
+~~~
+{: #subscription-flow-control-format title="SUBSCRIPTION_FLOW_CONTROL Setup Option"}
+
+* Initial Max Sub Streams: The initial MAX_SUB_STREAMS limit.
+
+* Initial Max Sub Bytes: The initial MAX_SUB_BYTES limit.
+
+When an endpoint receives a SUBSCRIPTION_FLOW_CONTROL Setup Option whose value
+does not contain exactly two varints, it MUST close the session with a
+`KEY_VALUE_FORMATTING_ERROR`.
 
 The extension is negotiated when an endpoint has both sent and received this
 option, per the extension negotiation described in {{MOQT}}. It applies to both
@@ -106,14 +124,12 @@ that does not support RESET_STREAM_AT, it MUST close the session with a
 
 # Flow Control Model {#model}
 
-A subscriber sets a subscription's initial limits by including the MAX_SUB_STREAMS
-and/or MAX_SUB_BYTES Parameters in the control message that establishes it:
-SUBSCRIBE or SUBSCRIBE_TRACKS.  Subscriptions initiated by a PUBLISH that are not
-in response to a SUBSCRIBE_TRACKS start with no flow control credit.
-The subscriber grants additional credit with SUB_FLOW_CONTROL_UPDATE
-({{message-sub-flow-control-update}}). The two limits are independent; a
-subscription MAY use either, both, or neither. Credit is not granted with
-REQUEST_UPDATE because it solicits a response, which is unnecessary.
+Every subscription has a stream limit and a byte limit, initialized from the
+subscriber's SUBSCRIPTION_FLOW_CONTROL Setup Option ({{setup-option}}), which
+SUBSCRIBE or SUBSCRIBE_TRACKS can override ({{parameters}}). The subscriber
+grants additional credit with SUB_FLOW_CONTROL_UPDATE ({{message-sub-flow-control-update}}).
+Credit is not granted with REQUEST_UPDATE because it solicits a response, which
+is unnecessary.
 
 The limits apply only to subgroup streams; Objects sent as datagrams are not
 counted. Limits and the messages defined here are scoped to a single session
@@ -219,16 +235,14 @@ For example, with 100 bytes of credit and a 200-byte Object:
 
 # Message Parameters {#parameters}
 
-This extension defines two Message Parameters ({{MOQT}}). Each MAY appear in the
-SUBSCRIBE or SUBSCRIBE_TRACKS, where it sets the initial limit for the
-subscription, or in a SUB_FLOW_CONTROL_UPDATE, where it is added to the current
-limit.
+This extension defines two Message Parameters ({{MOQT}}). If set in SUBSCRIBE or
+SUBSCRIBE_TRACKS, each parameter overrides the initial limit
+({{setup-option}}), even if the value is smaller. In PUBLISH, it echoes the value
+from the corresponding SUBSCRIBE_TRACKS. When sent in SUB_FLOW_CONTROL_UPDATE,
+the value is added to the current limit.
 
-A cumulative limit MUST NOT exceed 2^64-1. If a parameter is absent when the
-subscription is established, that limit does not apply and a later
-SUB_FLOW_CONTROL_UPDATE MUST NOT include it. An endpoint that receives a
-SUB_FLOW_CONTROL_UPDATE violating either rule MUST close the session with
-`PROTOCOL_VIOLATION`.
+A SUB_FLOW_CONTROL_UPDATE MUST NOT raise a limit above 2^64-1; receiving one
+that does is a `PROTOCOL_VIOLATION`.
 
 ## MAX_SUB_STREAMS Parameter {#max-sub-streams}
 
@@ -360,7 +374,7 @@ registry:
 
 | Type | Name | Specification |
 |-----:|:-----|:--------------|
-| 0x0A | SUBSCRIPTION_FLOW_CONTROL | {{setup-option}} |
+| 0x0B | SUBSCRIPTION_FLOW_CONTROL | {{setup-option}} |
 
 ## Message Parameters {#iana-parameters}
 
