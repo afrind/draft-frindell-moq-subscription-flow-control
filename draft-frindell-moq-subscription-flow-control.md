@@ -127,9 +127,9 @@ that does not support RESET_STREAM_AT, it MUST close the session with a
 Every subscription has a stream limit and a byte limit, initialized from the
 subscriber's SUBSCRIPTION_FLOW_CONTROL Setup Option ({{setup-option}}), which
 SUBSCRIBE or SUBSCRIBE_TRACKS can override ({{parameters}}). The subscriber
-grants additional credit with SUB_FLOW_CONTROL_UPDATE ({{message-sub-flow-control-update}}).
-Credit is not granted with REQUEST_UPDATE because it solicits a response, which
-is unnecessary.
+grants additional credit with SUB_FLOW_CONTROL_UPDATE
+({{message-sub-flow-control-update}}). Credit is not granted with REQUEST_UPDATE
+because it solicits a response, which is unnecessary.
 
 The limits apply only to subgroup streams; Objects sent as datagrams are not
 counted. Limits and the messages defined here are scoped to a single session
@@ -139,8 +139,8 @@ independently sets its own limits toward its upstream publisher.
 Limits are per subscription and cumulative over its lifetime: the stream count
 is the total number of subgroup streams opened, and the byte count is the total
 bytes sent across them ({{byte-accounting}}). A publisher MUST NOT exceed a
-limit in effect for a subscription. An endpoint that detects a violation MUST
-close the session with `FLOW_CONTROL_EXCEEDED` ({{errors}}).
+limit in effect for a subscription. When a subscriber detects a violation, it
+MUST close the session with a `FLOW_CONTROL_EXCEEDED` ({{errors}}).
 
 The subscriber attributes each subgroup stream to a subscription by its Track
 Alias, so when the extension is negotiated, a publisher MUST NOT assign the same
@@ -205,9 +205,9 @@ arrives, subject to the delivery timeout and ordering rules of {{MOQT}}.
 Each subgroup stream consumes byte credit exactly once. For a stream closed
 with a FIN, the bytes received consume credit.
 
-When a publisher resets a stream,
-it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
-({{message-subgroup-reset}}), and the stream consumes that much credit.
+When a publisher resets a stream, it reports the bytes sent on it in the Final
+Size field of SUBGROUP_RESET ({{message-subgroup-reset}}), and the stream
+consumes that much credit.
 
 A publisher MUST reset subgroup streams using RESET_STREAM_AT with a
 reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
@@ -215,11 +215,10 @@ learns the stream's Stream Sequence ({{stream-sequence}}) and can match it to
 the corresponding SUBGROUP_RESET.
 
 On native QUIC, this Final Size equals that of RESET_STREAM_AT
-({{RELIABLE-RESET}}). WebTransport ({{WebTransport}})
-implementations do not necessarily expose the transport Final Size. When a
-subscriber receives a SUBGROUP_RESET whose Final Size does not match the one
-reported by the transport, it MUST close the session with a
-`PROTOCOL_VIOLATION`.
+({{RELIABLE-RESET}}). WebTransport ({{WebTransport}}) implementations do not
+necessarily expose the transport Final Size. When a subscriber receives a
+SUBGROUP_RESET whose Final Size does not match the one reported by the
+transport, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 For example, with 100 bytes of credit and a 200-byte Object:
 
@@ -237,12 +236,13 @@ For example, with 100 bytes of credit and a 200-byte Object:
 
 This extension defines two Message Parameters ({{MOQT}}). If set in SUBSCRIBE or
 SUBSCRIBE_TRACKS, each parameter overrides the initial limit
-({{setup-option}}), even if the value is smaller. In PUBLISH, it echoes the value
-from the corresponding SUBSCRIBE_TRACKS. When sent in SUB_FLOW_CONTROL_UPDATE,
-the value is added to the current limit.
+({{setup-option}}), even if the value is smaller. In PUBLISH, it echoes the
+value from the corresponding SUBSCRIBE_TRACKS. When sent in
+SUB_FLOW_CONTROL_UPDATE, the value is added to the current limit.
 
-A SUB_FLOW_CONTROL_UPDATE MUST NOT raise a limit above 2^64-1; receiving one
-that does is a `PROTOCOL_VIOLATION`.
+A SUB_FLOW_CONTROL_UPDATE MUST NOT raise a limit above 2^64-1. When a publisher
+receives a SUB_FLOW_CONTROL_UPDATE that would raise a limit above 2^64-1, it
+MUST close the session with a `PROTOCOL_VIOLATION`.
 
 ## MAX_SUB_STREAMS Parameter {#max-sub-streams}
 
@@ -270,8 +270,8 @@ send direction of the request stream open. It has no effect if received after
 the subscription ends.
 
 Each parameter value is a delta to the current limit, so limits never decrease.
-When a publisher receives a SUB_FLOW_CONTROL_UPDATE with a delta of 0, it closes
-the session with a `PROTOCOL_VIOLATION`.
+When a publisher receives a SUB_FLOW_CONTROL_UPDATE with a delta of 0, it MUST
+close the session with a `PROTOCOL_VIOLATION`.
 
 ~~~
 SUB_FLOW_CONTROL_UPDATE Message {
@@ -290,8 +290,7 @@ SUB_FLOW_CONTROL_UPDATE Message {
 ## SUBGROUP_RESET {#message-subgroup-reset}
 
 A publisher sends `SUBGROUP_RESET` to report the final byte count of a reset
-subgroup stream ({{byte-accounting}}). Once the extension is negotiated, a
-publisher MAY send it for any subscription, whether or not limits are in use.
+subgroup stream ({{byte-accounting}}).
 
 ~~~
 SUBGROUP_RESET Message {
