@@ -44,7 +44,7 @@ author:
 
 normative:
   MOQT: I-D.ietf-moq-transport
-  QUIC: RFC9000
+  RELIABLE-RESET: I-D.ietf-quic-reliable-stream-reset
 
 informative:
   WebTransport: I-D.ietf-webtrans-http3
@@ -99,6 +99,11 @@ The extension is negotiated when an endpoint has both sent and received this
 option, per the extension negotiation described in {{MOQT}}. It applies to both
 directions of the session.
 
+An endpoint that offers this extension MUST support RESET_STREAM_AT
+({{RELIABLE-RESET}}). When an endpoint negotiates this extension with a peer
+that does not support RESET_STREAM_AT, it MUST close the session with a
+`PROTOCOL_VIOLATION`.
+
 # Flow Control Model {#model}
 
 A subscriber sets a subscription's initial limits by including the MAX_SUB_STREAMS
@@ -120,6 +125,40 @@ is the total number of subgroup streams opened, and the byte count is the total
 bytes sent across them ({{byte-accounting}}). A publisher MUST NOT exceed a
 limit in effect for a subscription. An endpoint that detects a violation MUST
 close the session with `FLOW_CONTROL_EXCEEDED` ({{errors}}).
+
+The subscriber attributes each subgroup stream to a subscription by its Track
+Alias, so when the extension is negotiated, a publisher MUST NOT assign the same
+Track Alias to more than one subscription in the session, even if the
+subscriptions are to the same Track or are not concurrent. When a subscriber
+detects a SUBSCRIBE_OK or PUBLISH with a Track Alias previously assigned to
+another subscription, it MUST close the session with a `DUPLICATE_TRACK_ALIAS`.
+
+## Stream Sequence {#stream-sequence}
+
+When the extension is negotiated, every SUBGROUP_HEADER includes a Stream
+Sequence field:
+
+~~~
+SUBGROUP_HEADER {
+  Type Flags (vi64),
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
+  [Publisher Priority (8),]
+  Stream Sequence (vi64),
+}
+~~~
+{: #moq-sub-flow-control-subgroup-header title="SUBGROUP_HEADER with Stream Sequence"}
+
+Stream Sequence uniquely identifies a subgroup stream within its subscription.
+The publisher sets it to 0 on the first subgroup stream it opens for a
+subscription and increments it by 1 for each subsequent stream.
+
+When a subscriber receives a SUBGROUP_HEADER with a Stream Sequence greater than
+or equal to the stream limit, it MUST close the session with a
+`FLOW_CONTROL_EXCEEDED`. When a subscriber detects a Stream Sequence it has
+already received for the subscription, it MUST close the session with a
+`PROTOCOL_VIOLATION`.
 
 ## Publisher Behavior When Blocked {#blocked}
 
@@ -152,11 +191,15 @@ the subscriber charges the bytes it received.
 
 When a publisher resets a stream,
 it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
-({{message-subgroup-reset}}), and the subscriber charges that value. Because a
-publisher never has more than one open subgroup stream with the same Group ID
-and Subgroup ID ({{MOQT}}), the subscriber can correlate each SUBGROUP_RESET
-with its stream. On native QUIC, this Final Size equals that of RESET_STREAM
-({{Section 19.4 of QUIC}}) or RESET_STREAM_AT. WebTransport ({{WebTransport}})
+({{message-subgroup-reset}}), and the subscriber charges that value.
+
+A publisher MUST reset subgroup streams using RESET_STREAM_AT with a
+reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
+learns the stream's Stream Sequence ({{stream-sequence}}) and can match it to
+the corresponding SUBGROUP_RESET.
+
+On native QUIC, this Final Size equals that of RESET_STREAM_AT
+({{RELIABLE-RESET}}). WebTransport ({{WebTransport}})
 implementations do not necessarily expose the transport Final Size. When a
 subscriber receives a SUBGROUP_RESET whose Final Size does not match the one
 reported by the transport, it MUST close the session with a
@@ -240,14 +283,14 @@ publisher MAY send it for any subscription, whether or not limits are in use.
 SUBGROUP_RESET Message {
   Type (vi64) = 0x1F,
   Length (16),
-  Group ID (vi64),
-  Subgroup ID (vi64),
+  Stream Sequence (vi64),
   Final Size (vi64),
 }
 ~~~
 {: #moq-transport-subgroup-reset-format title="MOQT SUBGROUP_RESET Message"}
 
-* Group ID, Subgroup ID: Identify the reset subgroup stream.
+* Stream Sequence: The Stream Sequence of the reset subgroup stream
+  ({{stream-sequence}}).
 
 * Final Size: The bytes sent on the stream before it was reset.
 
