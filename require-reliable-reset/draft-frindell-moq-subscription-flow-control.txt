@@ -257,12 +257,12 @@ Table of Contents
    always learns the stream's Stream Sequence (Section 4.1) and can
    match it to the corresponding SUBGROUP_RESET.
 
-   On native QUIC, this Final Size equals that of RESET_STREAM
-   (Section 19.4 of [QUIC]) or RESET_STREAM_AT.  WebTransport
-   ([WebTransport]) implementations do not necessarily expose the
-   transport Final Size.  When a subscriber receives a SUBGROUP_RESET
-   whose Final Size does not match the one reported by the transport, it
-   MUST close the session with a PROTOCOL_VIOLATION.
+   On native QUIC, this Final Size equals that of RESET_STREAM_AT
+   ([RELIABLE-RESET]).  WebTransport ([WebTransport]) implementations do
+   not necessarily expose the transport Final Size.  When a subscriber
+   receives a SUBGROUP_RESET whose Final Size does not match the one
+   reported by the transport, it MUST close the session with a
+   PROTOCOL_VIOLATION.
 
    For example, with 100 bytes of credit and a 200-byte Object:
 
@@ -482,11 +482,6 @@ Table of Contents
               Draft, draft-ietf-moq-transport-22, 1 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
               transport-22>.
-
-   [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
-              Multiplexed and Secure Transport", RFC 9000,
-              DOI 10.17487/RFC9000, May 2021,
-              <https://www.rfc-editor.org/rfc/rfc9000>.
 
    [RELIABLE-RESET]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial

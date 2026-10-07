@@ -1420,8 +1420,8 @@ it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
 reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
 learns the stream's Stream Sequence (<a href="#stream-sequence" class="auto internal xref">Section 4.1</a>) and can match it to
 the corresponding SUBGROUP_RESET.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
-<p id="section-4.3-6">On native QUIC, this Final Size equals that of RESET_STREAM
-(<span><a href="https://rfc-editor.org/rfc/rfc9000#section-19.4" class="relref">Section 19.4</a> of [<a href="#QUIC" class="cite xref">QUIC</a>]</span>) or RESET_STREAM_AT. WebTransport (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>)
+<p id="section-4.3-6">On native QUIC, this Final Size equals that of RESET_STREAM_AT
+(<span>[<a href="#RELIABLE-RESET" class="cite xref">RELIABLE-RESET</a>]</span>). WebTransport (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>)
 implementations do not necessarily expose the transport Final Size. When a
 subscriber receives a SUBGROUP_RESET whose Final Size does not match the one
 reported by the transport, it <span class="bcp14">MUST</span> close the session with a
@@ -1806,10 +1806,6 @@ Error Codes" registry:<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 <dt id="MOQT">[MOQT]</dt>
         <dd>
 <span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Vasiliev, V.</span>, <span class="refAuthor">Swett, I.</span>, and <span class="refAuthor">A. Frindell</span>, <span class="refTitle">"Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-transport-22</span>, <time datetime="2026-10-01" class="refDate">1 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-22">https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-22</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="QUIC">[QUIC]</dt>
-        <dd>
-<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RELIABLE-RESET">[RELIABLE-RESET]</dt>
         <dd>
