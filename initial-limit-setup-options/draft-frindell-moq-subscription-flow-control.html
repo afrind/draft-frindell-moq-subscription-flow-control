@@ -10,7 +10,7 @@
 <meta content="
        This document defines an extension to Media over QUIC Transport (MOQT) that
 lets a subscriber limit the number of subgroup streams and the total bytes a
-publisher may send for an individual subscription. It defines Setup Options to
+publisher may send for an individual subscription. It defines a Setup Option to
 negotiate the extension and set initial limits, message parameters for
 advertising these limits, messages for granting credit and signaling flow
 control state, and a session error code. 
@@ -1052,7 +1052,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Frindell &amp; Swett</td>
-<td class="center">Expires 9 April 2027</td>
+<td class="center">Expires 10 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1065,12 @@ svg {
 <dd class="internet-draft">draft-frindell-moq-subscription-flow-control-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-06" class="published">6 October 2026</time>
+<time datetime="2026-10-07" class="published">7 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-09">9 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-10">10 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1091,7 +1091,7 @@ svg {
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">This document defines an extension to Media over QUIC Transport (MOQT) that
 lets a subscriber limit the number of subgroup streams and the total bytes a
-publisher may send for an individual subscription. It defines Setup Options to
+publisher may send for an individual subscription. It defines a Setup Option to
 negotiate the extension and set initial limits, message parameters for
 advertising these limits, messages for granting credit and signaling flow
 control state, and a session error code.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
@@ -1131,7 +1131,7 @@ control state, and a session error code.<a href="#section-abstract-1" class="pil
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 9 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 10 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1172,19 +1172,19 @@ control state, and a session error code.<a href="#section-abstract-1" class="pil
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
                 <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-subscription_flow_control-s" class="internal xref">SUBSCRIPTION_FLOW_CONTROL Setup Option</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
-                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-initial-limit-setup-options" class="internal xref">Initial Limit Setup Options</a></p>
-</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-flow-control-model" class="internal xref">Flow Control Model</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-publisher-behavior-when-blo" class="internal xref">Publisher Behavior When Blocked</a></p>
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-stream-sequence" class="internal xref">Stream Sequence</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
-                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-byte-accounting" class="internal xref">Byte Accounting</a></p>
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-publisher-behavior-when-blo" class="internal xref">Publisher Behavior When Blocked</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-byte-accounting" class="internal xref">Byte Accounting</a></p>
 </li>
             </ul>
 </li>
@@ -1305,35 +1305,43 @@ endpoint is the client or server.<a href="#section-2-2" class="pilcrow">¶</a></
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-subscription_flow_control-s" class="section-name selfRef">SUBSCRIPTION_FLOW_CONTROL Setup Option</a>
         </h3>
 <p id="section-3.1-1">An endpoint indicates support for this extension by including the
-SUBSCRIPTION_FLOW_CONTROL Setup Option (Option Type 0x0A) in its SETUP message.
-Its value is a single varint that is reserved; senders <span class="bcp14">SHOULD</span> set it to 0 and
-receivers <span class="bcp14">MUST</span> ignore it.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">The extension is negotiated when an endpoint has both sent and received this
-option, per the extension negotiation described in <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>. It applies to both
-directions of the session.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-</section>
+SUBSCRIPTION_FLOW_CONTROL Setup Option in its SETUP message. The option also
+sets the initial limits for subscriptions in which the endpoint is the
+subscriber (<a href="#model" class="auto internal xref">Section 4</a>).<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<span id="name-subscription_flow_control-se"></span><div id="subscription-flow-control-format">
+<figure id="figure-1">
+          <div class="alignLeft art-text artwork" id="section-3.1-2.1">
+<pre>
+SUBSCRIPTION_FLOW_CONTROL Setup Option {
+  Option Type (vi64) = 0x0B,
+  Length (vi64),
+  Initial Max Sub Streams (vi64),
+  Initial Max Sub Bytes (vi64),
+}
+</pre>
 </div>
-<div id="initial-limits">
-<section id="section-3.2">
-        <h3 id="name-initial-limit-setup-options">
-<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-initial-limit-setup-options" class="section-name selfRef">Initial Limit Setup Options</a>
-        </h3>
-<p id="section-3.2-1">An endpoint <span class="bcp14">MAY</span> include the following Setup Options to set the initial limits
-for subscriptions in which it is the subscriber (<a href="#model" class="auto internal xref">Section 4</a>). Each value is a
-varint. An endpoint ignores these options unless the extension is negotiated.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.2-2">
-          <dt id="section-3.2-2.1">INITIAL_MAX_SUB_STREAMS (Option Type 0x0C):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.2-2.2">
-            <p id="section-3.2-2.2.1">The initial MAX_SUB_STREAMS limit.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.2-2.3">INITIAL_MAX_SUB_BYTES (Option Type 0x0E):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.2-2.4">
-            <p id="section-3.2-2.4.1">The initial MAX_SUB_BYTES limit.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<p id="section-3.2-3">If an option is omitted, the corresponding initial limit is 0.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-subscription_flow_control-se" class="selfRef">SUBSCRIPTION_FLOW_CONTROL Setup Option</a>
+          </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-3.1-3.1">
+            <p id="section-3.1-3.1.1">Initial Max Sub Streams: The initial MAX_SUB_STREAMS limit.<a href="#section-3.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.1-3.2">
+            <p id="section-3.1-3.2.1">Initial Max Sub Bytes: The initial MAX_SUB_BYTES limit.<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.1-4">When an endpoint receives a SUBSCRIPTION_FLOW_CONTROL Setup Option whose value
+does not contain exactly two varints, it <span class="bcp14">MUST</span> close the session with a
+<code>KEY_VALUE_FORMATTING_ERROR</code>.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.1-5">The extension is negotiated when an endpoint has both sent and received this
+option, per the extension negotiation described in <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>. It applies to both
+directions of the session.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.1-6">An endpoint that offers this extension <span class="bcp14">MUST</span> support RESET_STREAM_AT
+(<span>[<a href="#RELIABLE-RESET" class="cite xref">RELIABLE-RESET</a>]</span>). When an endpoint negotiates this extension with a peer
+that does not support RESET_STREAM_AT, it <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1344,9 +1352,9 @@ varint. An endpoint ignores these options unless the extension is negotiated.<a 
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-flow-control-model" class="section-name selfRef">Flow Control Model</a>
       </h2>
 <p id="section-4-1">Every subscription has a stream limit and a byte limit, initialized from the
-subscriber's Setup Options (<a href="#initial-limits" class="auto internal xref">Section 3.2</a>), which SUBSCRIBE or
-SUBSCRIBE_TRACKS can override (<a href="#parameters" class="auto internal xref">Section 5</a>). The subscriber grants additional
-credit with SUB_FLOW_CONTROL_UPDATE (<a href="#message-sub-flow-control-update" class="auto internal xref">Section 6.1</a>).
+subscriber's SUBSCRIPTION_FLOW_CONTROL Setup Option (<a href="#setup-option" class="auto internal xref">Section 3.1</a>), which
+SUBSCRIBE or SUBSCRIBE_TRACKS can override (<a href="#parameters" class="auto internal xref">Section 5</a>). The subscriber
+grants additional credit with SUB_FLOW_CONTROL_UPDATE (<a href="#message-sub-flow-control-update" class="auto internal xref">Section 6.1</a>).
 Credit is not granted with REQUEST_UPDATE because it solicits a response, which
 is unnecessary.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">The limits apply only to subgroup streams; Objects sent as datagrams are not
@@ -1355,53 +1363,96 @@ and are not forwarded. A relay honors its downstream subscriber's limits and
 independently sets its own limits toward its upstream publisher.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <p id="section-4-3">Limits are per subscription and cumulative over its lifetime: the stream count
 is the total number of subgroup streams opened, and the byte count is the total
-bytes sent across them (<a href="#byte-accounting" class="auto internal xref">Section 4.2</a>). A publisher <span class="bcp14">MUST NOT</span> exceed a
+bytes sent across them (<a href="#byte-accounting" class="auto internal xref">Section 4.3</a>). A publisher <span class="bcp14">MUST NOT</span> exceed a
 limit in effect for a subscription. An endpoint that detects a violation <span class="bcp14">MUST</span>
 close the session with <code>FLOW_CONTROL_EXCEEDED</code> (<a href="#errors" class="auto internal xref">Section 7</a>).<a href="#section-4-3" class="pilcrow">¶</a></p>
-<div id="blocked">
+<p id="section-4-4">The subscriber attributes each subgroup stream to a subscription by its Track
+Alias, so when the extension is negotiated, a publisher <span class="bcp14">MUST NOT</span> assign the same
+Track Alias to more than one subscription in the session, even if the
+subscriptions are to the same Track or are not concurrent. When a subscriber
+detects a SUBSCRIBE_OK or PUBLISH with a Track Alias previously assigned to
+another subscription, it <span class="bcp14">MUST</span> close the session with a <code>DUPLICATE_TRACK_ALIAS</code>.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<div id="stream-sequence">
 <section id="section-4.1">
-        <h3 id="name-publisher-behavior-when-blo">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-publisher-behavior-when-blo" class="section-name selfRef">Publisher Behavior When Blocked</a>
+        <h3 id="name-stream-sequence">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-stream-sequence" class="section-name selfRef">Stream Sequence</a>
         </h3>
-<p id="section-4.1-1">When sending would exceed a limit, the publisher <span class="bcp14">MUST NOT</span> open a subgroup stream
+<p id="section-4.1-1">When the extension is negotiated, every SUBGROUP_HEADER includes a Stream
+Sequence field:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<span id="name-subgroup_header-with-stream"></span><div id="moq-sub-flow-control-subgroup-header">
+<figure id="figure-2">
+          <div class="alignLeft art-text artwork" id="section-4.1-2.1">
+<pre>
+SUBGROUP_HEADER {
+  Type Flags (vi64),
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
+  [Publisher Priority (8),]
+  Stream Sequence (vi64),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-subgroup_header-with-stream" class="selfRef">SUBGROUP_HEADER with Stream Sequence</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.1-3">Stream Sequence uniquely identifies a subgroup stream within its subscription.
+The publisher sets it to 0 on the first subgroup stream it opens for a
+subscription and increments it by 1 for each subsequent stream.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">When a subscriber receives a SUBGROUP_HEADER with a Stream Sequence greater than
+or equal to the stream limit, it <span class="bcp14">MUST</span> close the session with a
+<code>FLOW_CONTROL_EXCEEDED</code>. When a subscriber detects a Stream Sequence it has
+already received for the subscription, it <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="blocked">
+<section id="section-4.2">
+        <h3 id="name-publisher-behavior-when-blo">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-publisher-behavior-when-blo" class="section-name selfRef">Publisher Behavior When Blocked</a>
+        </h3>
+<p id="section-4.2-1">When sending would exceed a limit, the publisher <span class="bcp14">MUST NOT</span> open a subgroup stream
 beyond the stream limit and <span class="bcp14">MUST NOT</span> send bytes beyond the byte limit, even if
 this means stopping in the middle of a stream. It retains the blocked Objects
 until it receives additional credit, and <span class="bcp14">SHOULD</span> send SUB_STREAMS_BLOCKED or
-SUB_BYTES_BLOCKED, as applicable.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">Being blocked does not extend an Object's lifetime; the delivery timeouts of
+SUB_BYTES_BLOCKED, as applicable.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">Being blocked does not extend an Object's lifetime; the delivery timeouts of
 <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span> (SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT) continue to
 apply. A subgroup stream reset because of an expired timeout is accounted for as
-described in <a href="#byte-accounting" class="auto internal xref">Section 4.2</a>.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1-3">If retaining blocked Objects would exceed its resource limits, a publisher <span class="bcp14">MAY</span>
-terminate the subscription with PUBLISH_DONE and <code>TOO_FAR_BEHIND</code> (<span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>).<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+described in <a href="#byte-accounting" class="auto internal xref">Section 4.3</a>.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">If retaining blocked Objects would exceed its resource limits, a publisher <span class="bcp14">MAY</span>
+terminate the subscription with PUBLISH_DONE and <code>TOO_FAR_BEHIND</code> (<span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>).<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="byte-accounting">
-<section id="section-4.2">
+<section id="section-4.3">
         <h3 id="name-byte-accounting">
-<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-byte-accounting" class="section-name selfRef">Byte Accounting</a>
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-byte-accounting" class="section-name selfRef">Byte Accounting</a>
         </h3>
-<p id="section-4.2-1">The byte count includes all bytes serialized on the subscription's subgroup
+<p id="section-4.3-1">The byte count includes all bytes serialized on the subscription's subgroup
 streams: the SUBGROUP_HEADER (including the stream type) and each Object's
-header fields and payload. It excludes QUIC and WebTransport framing.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">Accounting is at byte granularity. A publisher <span class="bcp14">MAY</span> send part of an Object and
+header fields and payload. It excludes QUIC and WebTransport framing.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">Accounting is at byte granularity. A publisher <span class="bcp14">MAY</span> send part of an Object and
 stop at the byte limit, leaving the stream open and resuming when credit
-arrives, subject to the delivery timeout and ordering rules of <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">Each subgroup stream is charged exactly once. For a stream closed with a FIN,
-the subscriber charges the bytes it received. When a publisher resets a stream,
+arrives, subject to the delivery timeout and ordering rules of <span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">Each subgroup stream is charged exactly once. For a stream closed with a FIN,
+the subscriber charges the bytes it received.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">When a publisher resets a stream,
 it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
-(<a href="#message-subgroup-reset" class="auto internal xref">Section 6.2</a>), and the subscriber charges that value. Because a
-publisher never has more than one open subgroup stream with the same Group ID
-and Subgroup ID (<span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>), the subscriber can correlate each SUBGROUP_RESET
-with its stream.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">On native QUIC, this Final Size duplicates that of RESET_STREAM
-(<span><a href="https://rfc-editor.org/rfc/rfc9000#section-19.4" class="relref">Section 19.4</a> of [<a href="#QUIC" class="cite xref">QUIC</a>]</span>), but WebTransport (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>)
-implementations do not necessarily expose it. If the subscriber can
-independently determine the bytes sent on a stream (from RESET_STREAM or a FIN)
-and that differs from the value reported or otherwise charged, it <span class="bcp14">MUST</span> close the
-session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.2-5">For example, with 100 bytes of credit and a 200-byte Object:<a href="#section-4.2-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-4.2-6">
+(<a href="#message-subgroup-reset" class="auto internal xref">Section 6.2</a>), and the subscriber charges that value.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5">A publisher <span class="bcp14">MUST</span> reset subgroup streams using RESET_STREAM_AT with a
+reliable_size that includes the SUBGROUP_HEADER, so the subscriber always
+learns the stream's Stream Sequence (<a href="#stream-sequence" class="auto internal xref">Section 4.1</a>) and can match it to
+the corresponding SUBGROUP_RESET.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.3-6">On native QUIC, this Final Size equals that of RESET_STREAM_AT
+(<span>[<a href="#RELIABLE-RESET" class="cite xref">RELIABLE-RESET</a>]</span>). WebTransport (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>)
+implementations do not necessarily expose the transport Final Size. When a
+subscriber receives a SUBGROUP_RESET whose Final Size does not match the one
+reported by the transport, it <span class="bcp14">MUST</span> close the session with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.3-7">For example, with 100 bytes of credit and a 200-byte Object:<a href="#section-4.3-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-8">
 <pre>
 1. Publisher sends 100 bytes (SUBGROUP_HEADER, Object header,
    partial payload), reaching the limit, and SHOULD send
@@ -1410,7 +1461,7 @@ session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-4.2-4" class="pil
 3. Publisher resets the stream and sends SUBGROUP_RESET with
    Final Size = 100.
 4. Subscriber charges 100 bytes: limit reached, not exceeded.
-</pre><a href="#section-4.2-6" class="pilcrow">¶</a>
+</pre><a href="#section-4.3-8" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -1423,9 +1474,9 @@ session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-4.2-4" class="pil
       </h2>
 <p id="section-5-1">This extension defines two Message Parameters (<span>[<a href="#MOQT" class="cite xref">MOQT</a>]</span>). If set in SUBSCRIBE or
 SUBSCRIBE_TRACKS, each parameter overrides the initial limit
-(<a href="#initial-limits" class="auto internal xref">Section 3.2</a>), even with a smaller value. In PUBLISH, it echoes the value
-from the corresponding SUBSCRIBE_TRACKS. In SUB_FLOW_CONTROL_UPDATE, it is added
-to the current limit.<a href="#section-5-1" class="pilcrow">¶</a></p>
+(<a href="#setup-option" class="auto internal xref">Section 3.1</a>), even if the value is smaller. In PUBLISH, it echoes the value
+from the corresponding SUBSCRIBE_TRACKS. When sent in SUB_FLOW_CONTROL_UPDATE,
+the value is added to the current limit.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">A SUB_FLOW_CONTROL_UPDATE <span class="bcp14">MUST NOT</span> raise a limit above 2^64-1; receiving one
 that does is a <code>PROTOCOL_VIOLATION</code>.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <div id="max-sub-streams">
@@ -1444,7 +1495,7 @@ subgroup streams the publisher can open for the subscription.<a href="#section-5
         </h3>
 <p id="section-5.2-1">MAX_SUB_BYTES (Parameter Type 0x36) is a varint limiting the total bytes the
 publisher can send across the subscription's subgroup streams
-(<a href="#byte-accounting" class="auto internal xref">Section 4.2</a>).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+(<a href="#byte-accounting" class="auto internal xref">Section 4.3</a>).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1467,9 +1518,12 @@ be sent any time after the subscription is established, whether or not the
 publisher is blocked, so a subscriber that intends to grant credit <span class="bcp14">MUST</span> keep the
 send direction of the request stream open. It has no effect if received after
 the subscription ends.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">Each parameter value is a delta to the current limit, so limits never decrease.
+When a publisher receives a SUB_FLOW_CONTROL_UPDATE with a delta of 0, it closes
+the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-sub_flow_control_updat"></span><div id="moq-transport-sub-flow-control-update-format">
-<figure id="figure-1">
-          <div class="alignLeft art-text artwork" id="section-6.1-2.1">
+<figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="section-6.1-3.1">
 <pre>
 SUB_FLOW_CONTROL_UPDATE Message {
   Type (vi64) = 0x14,
@@ -1479,14 +1533,15 @@ SUB_FLOW_CONTROL_UPDATE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
 <a href="#name-moqt-sub_flow_control_updat" class="selfRef">MOQT SUB_FLOW_CONTROL_UPDATE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.1-3.1">
-            <p id="section-6.1-3.1.1">Parameters: MAX_SUB_STREAMS and/or MAX_SUB_BYTES, each granting additional
-credit. A message carrying neither has no effect but is not an error.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.1-4.1">
+            <p id="section-6.1-4.1.1">Parameters: MAX_SUB_STREAMS and/or MAX_SUB_BYTES, each granting additional
+credit. When a publisher receives a SUB_FLOW_CONTROL_UPDATE with neither
+parameter, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-6.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1497,28 +1552,28 @@ credit. A message carrying neither has no effect but is not an error.<a href="#s
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-subgroup_reset" class="section-name selfRef">SUBGROUP_RESET</a>
         </h3>
 <p id="section-6.2-1">A publisher sends <code>SUBGROUP_RESET</code> to report the final byte count of a reset
-subgroup stream (<a href="#byte-accounting" class="auto internal xref">Section 4.2</a>). Once the extension is negotiated, a
+subgroup stream (<a href="#byte-accounting" class="auto internal xref">Section 4.3</a>). Once the extension is negotiated, a
 publisher <span class="bcp14">MAY</span> send it for any subscription, whether or not limits are in use.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_reset-message"></span><div id="moq-transport-subgroup-reset-format">
-<figure id="figure-2">
+<figure id="figure-4">
           <div class="alignLeft art-text artwork" id="section-6.2-2.1">
 <pre>
 SUBGROUP_RESET Message {
   Type (vi64) = 0x1F,
   Length (16),
-  Group ID (vi64),
-  Subgroup ID (vi64),
+  Stream Sequence (vi64),
   Final Size (vi64),
 }
 </pre>
 </div>
-<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
 <a href="#name-moqt-subgroup_reset-message" class="selfRef">MOQT SUBGROUP_RESET Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.2-3.1">
-            <p id="section-6.2-3.1.1">Group ID, Subgroup ID: Identify the reset subgroup stream.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.2-3.1.1">Stream Sequence: The Stream Sequence of the reset subgroup stream
+(<a href="#stream-sequence" class="auto internal xref">Section 4.1</a>).<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.2-3.2">
             <p id="section-6.2-3.2.1">Final Size: The bytes sent on the stream before it was reset.<a href="#section-6.2-3.2.1" class="pilcrow">¶</a></p>
@@ -1534,7 +1589,7 @@ SUBGROUP_RESET Message {
 <p id="section-6.3-1">A publisher sends <code>SUB_STREAMS_BLOCKED</code> when it wants to open a subgroup stream
 but MAX_SUB_STREAMS prevents it.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-sub_streams_blocked-me"></span><div id="moq-transport-sub-streams-blocked-format">
-<figure id="figure-3">
+<figure id="figure-5">
           <div class="alignLeft art-text artwork" id="section-6.3-2.1">
 <pre>
 SUB_STREAMS_BLOCKED Message {
@@ -1544,7 +1599,7 @@ SUB_STREAMS_BLOCKED Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
 <a href="#name-moqt-sub_streams_blocked-me" class="selfRef">MOQT SUB_STREAMS_BLOCKED Message</a>
           </figcaption></figure>
 </div>
@@ -1563,7 +1618,7 @@ SUB_STREAMS_BLOCKED Message {
 <p id="section-6.4-1">A publisher sends <code>SUB_BYTES_BLOCKED</code> when it has data to send but MAX_SUB_BYTES
 prevents it.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-sub_bytes_blocked-mess"></span><div id="moq-transport-sub-bytes-blocked-format">
-<figure id="figure-4">
+<figure id="figure-6">
           <div class="alignLeft art-text artwork" id="section-6.4-2.1">
 <pre>
 SUB_BYTES_BLOCKED Message {
@@ -1573,7 +1628,7 @@ SUB_BYTES_BLOCKED Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
 <a href="#name-moqt-sub_bytes_blocked-mess" class="selfRef">MOQT SUB_BYTES_BLOCKED Message</a>
           </figcaption></figure>
 </div>
@@ -1614,9 +1669,8 @@ rely on receiving them and <span class="bcp14">MUST</span> enforce limits regard
 grants credit only in response to them could stall a publisher that does not
 send them; granting credit proactively avoids this.<a href="#section-8-2" class="pilcrow">¶</a></p>
 <p id="section-8-3">A misbehaving publisher could under-report Final Size in SUBGROUP_RESET to
-evade MAX_SUB_BYTES. Where the subscriber can independently determine the bytes
-sent, a discrepancy is a <code>PROTOCOL_VIOLATION</code> (<a href="#byte-accounting" class="auto internal xref">Section 4.2</a>). An
-endpoint <span class="bcp14">MAY</span> additionally use transport-level flow control.<a href="#section-8-3" class="pilcrow">¶</a></p>
+evade MAX_SUB_BYTES; <a href="#byte-accounting" class="auto internal xref">Section 4.3</a> describes how a subscriber detects this
+when the transport reports the stream's Final Size.<a href="#section-8-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
@@ -1645,24 +1699,10 @@ registry:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
           </thead>
           <tbody>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x0A</td>
+              <td class="text-right" rowspan="1" colspan="1">0x0B</td>
               <td class="text-left" rowspan="1" colspan="1">SUBSCRIPTION_FLOW_CONTROL</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <a href="#setup-option" class="auto internal xref">Section 3.1</a>
-</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x0C</td>
-              <td class="text-left" rowspan="1" colspan="1">INITIAL_MAX_SUB_STREAMS</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <a href="#initial-limits" class="auto internal xref">Section 3.2</a>
-</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x0E</td>
-              <td class="text-left" rowspan="1" colspan="1">INITIAL_MAX_SUB_BYTES</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <a href="#initial-limits" class="auto internal xref">Section 3.2</a>
 </td>
             </tr>
           </tbody>
@@ -1790,9 +1830,9 @@ Error Codes" registry:<a href="#section-9.4-1" class="pilcrow">¶</a></p>
         <dd>
 <span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Vasiliev, V.</span>, <span class="refAuthor">Swett, I.</span>, and <span class="refAuthor">A. Frindell</span>, <span class="refTitle">"Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-transport-22</span>, <time datetime="2026-10-01" class="refDate">1 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-22">https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-22</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="QUIC">[QUIC]</dt>
+<dt id="RELIABLE-RESET">[RELIABLE-RESET]</dt>
         <dd>
-<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
+<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-11</span>, <time datetime="2026-09-06" class="refDate">6 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-11">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-11</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
