@@ -53,7 +53,7 @@ informative:
 
 This document defines an extension to Media over QUIC Transport (MOQT) that
 lets a subscriber limit the number of subgroup streams and the total bytes a
-publisher may send for an individual subscription. It defines Setup Options to
+publisher may send for an individual subscription. It defines a Setup Option to
 negotiate the extension and set initial limits, message parameters for
 advertising these limits, messages for granting credit and signaling flow
 control state, and a session error code.
@@ -91,9 +91,27 @@ endpoint is the client or server.
 ## SUBSCRIPTION_FLOW_CONTROL Setup Option {#setup-option}
 
 An endpoint indicates support for this extension by including the
-SUBSCRIPTION_FLOW_CONTROL Setup Option (Option Type 0x0A) in its SETUP message.
-Its value is a single varint that is reserved; senders SHOULD set it to 0 and
-receivers MUST ignore it.
+SUBSCRIPTION_FLOW_CONTROL Setup Option in its SETUP message. The option also
+sets the initial limits for subscriptions in which the endpoint is the
+subscriber ({{model}}).
+
+~~~
+SUBSCRIPTION_FLOW_CONTROL Setup Option {
+  Option Type (vi64) = 0x0B,
+  Length (vi64),
+  Initial Max Sub Streams (vi64),
+  Initial Max Sub Bytes (vi64),
+}
+~~~
+{: #subscription-flow-control-format title="SUBSCRIPTION_FLOW_CONTROL Setup Option"}
+
+* Initial Max Sub Streams: The initial MAX_SUB_STREAMS limit.
+
+* Initial Max Sub Bytes: The initial MAX_SUB_BYTES limit.
+
+When an endpoint receives a SUBSCRIPTION_FLOW_CONTROL Setup Option whose value
+does not contain exactly two varints, it MUST close the session with a
+`KEY_VALUE_FORMATTING_ERROR`.
 
 The extension is negotiated when an endpoint has both sent and received this
 option, per the extension negotiation described in {{MOQT}}. It applies to both
@@ -104,26 +122,12 @@ An endpoint that offers this extension MUST support RESET_STREAM_AT
 that does not support RESET_STREAM_AT, it MUST close the session with a
 `PROTOCOL_VIOLATION`.
 
-## Initial Limit Setup Options {#initial-limits}
-
-An endpoint MAY include the following Setup Options to set the initial limits
-for subscriptions in which it is the subscriber ({{model}}). Each value is a
-varint. An endpoint ignores these options unless the extension is negotiated.
-
-INITIAL_MAX_SUB_STREAMS (Option Type 0x0C):
-: The initial MAX_SUB_STREAMS limit.
-
-INITIAL_MAX_SUB_BYTES (Option Type 0x0E):
-: The initial MAX_SUB_BYTES limit.
-
-If an option is omitted, the corresponding initial limit is 0.
-
 # Flow Control Model {#model}
 
 Every subscription has a stream limit and a byte limit, initialized from the
-subscriber's Setup Options ({{initial-limits}}), which SUBSCRIBE or
-SUBSCRIBE_TRACKS can override ({{parameters}}). The subscriber grants additional
-credit with SUB_FLOW_CONTROL_UPDATE ({{message-sub-flow-control-update}}).
+subscriber's SUBSCRIPTION_FLOW_CONTROL Setup Option ({{setup-option}}), which
+SUBSCRIBE or SUBSCRIBE_TRACKS can override ({{parameters}}). The subscriber
+grants additional credit with SUB_FLOW_CONTROL_UPDATE ({{message-sub-flow-control-update}}).
 Credit is not granted with REQUEST_UPDATE because it solicits a response, which
 is unnecessary.
 
@@ -233,9 +237,9 @@ For example, with 100 bytes of credit and a 200-byte Object:
 
 This extension defines two Message Parameters ({{MOQT}}). If set in SUBSCRIBE or
 SUBSCRIBE_TRACKS, each parameter overrides the initial limit
-({{initial-limits}}), even with a smaller value. In PUBLISH, it echoes the value
-from the corresponding SUBSCRIBE_TRACKS. In SUB_FLOW_CONTROL_UPDATE, it is added
-to the current limit.
+({{setup-option}}), even if the value is smaller. In PUBLISH, it echoes the value
+from the corresponding SUBSCRIBE_TRACKS. When sent in SUB_FLOW_CONTROL_UPDATE,
+the value is added to the current limit.
 
 A SUB_FLOW_CONTROL_UPDATE MUST NOT raise a limit above 2^64-1; receiving one
 that does is a `PROTOCOL_VIOLATION`.
@@ -370,9 +374,7 @@ registry:
 
 | Type | Name | Specification |
 |-----:|:-----|:--------------|
-| 0x0A | SUBSCRIPTION_FLOW_CONTROL | {{setup-option}} |
-| 0x0C | INITIAL_MAX_SUB_STREAMS | {{initial-limits}} |
-| 0x0E | INITIAL_MAX_SUB_BYTES | {{initial-limits}} |
+| 0x0B | SUBSCRIPTION_FLOW_CONTROL | {{setup-option}} |
 
 ## Message Parameters {#iana-parameters}
 
