@@ -148,7 +148,7 @@ stop at the byte limit, leaving the stream open and resuming when credit
 arrives, subject to the delivery timeout and ordering rules of {{MOQT}}.
 
 Each subgroup stream is charged exactly once. For a stream closed with a FIN,
-the subscriber charges the bytes it received. 
+the subscriber charges the bytes it received.
 
 When a publisher resets a stream,
 it reports the bytes sent on it in the Final Size field of SUBGROUP_RESET
