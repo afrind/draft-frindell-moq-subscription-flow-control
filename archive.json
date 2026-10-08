@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-06T04:03:58.423010+00:00",
+  "timestamp": "2026-10-08T03:46:22.865495+00:00",
   "repo": "afrind/draft-frindell-moq-subscription-flow-control",
   "labels": [
     {
@@ -248,128 +248,362 @@
       "id": "PR_kwDOU86eg88AAAABG0KrqQ",
       "title": "Add Setup Options for initial subscription flow control limits",
       "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/3",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Addresses review feedback on PR #1 about subscriptions created by a PUBLISH that was not in response to SUBSCRIBE_TRACKS.\r\n\r\n* Add INITIAL_MAX_SUB_STREAMS (0x0C) and INITIAL_MAX_SUB_BYTES (0x0E) Setup Options. If omitted, the initial limit is 0.\r\n* Both limits now always apply when the extension is negotiated. SUBSCRIBE or SUBSCRIBE_TRACKS can override an initial limit, including with a smaller value; PUBLISH echoes the SUBSCRIBE_TRACKS value.\r\n* Remove the rule that a limit absent at establishment does not apply, which contradicted the zero-credit default for PUBLISH.",
       "createdAt": "2026-10-06T00:08:19Z",
-      "updatedAt": "2026-10-06T00:08:19Z",
+      "updatedAt": "2026-10-07T04:09:07Z",
       "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "baseRefName": "main",
-      "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
+      "baseRefOid": "f7399d25a7fe806823e44d0cc36942c5f5b17a09",
       "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "headRefName": "initial-limit-setup-options",
-      "headRefOid": "7ee7a128d1c969bf8933a9c862f18ddeb78fac8b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "98d7e91cf94aac28f631f94068a69027379fa80d",
+      "closedAt": "2026-10-07T04:09:04Z",
+      "mergedAt": "2026-10-07T04:09:04Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "8a3bf52928c332f162b9de1ac04f131d39aa2975"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOU86eg88AAAABRAmfgw",
+          "commit": {
+            "abbreviatedOid": "7ee7a12"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Some comments.  It's probably fine to keep the three Setup Options for now and we can bikeshed the spelling later.",
+          "createdAt": "2026-10-07T01:10:43Z",
+          "updatedAt": "2026-10-07T01:15:41Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "I think I prefer a single Setup Option, because this creates error cases such as what if these Setup Options are present and the SUBSCRIPTION_FLOW_CONTROL one isn't, but I don't have a strong opinioin.",
+              "createdAt": "2026-10-07T01:10:43Z",
+              "updatedAt": "2026-10-07T01:15:41Z"
+            },
+            {
+              "originalPosition": 31,
+              "body": "So you can't send anything, not unlimited?  For some reason, I was thinking the default would be unlimited?",
+              "createdAt": "2026-10-07T01:11:59Z",
+              "updatedAt": "2026-10-07T01:15:41Z"
+            },
+            {
+              "originalPosition": 62,
+              "body": "```suggestion\n({{initial-limits}}), even if the value is smaller. In PUBLISH, it echoes the value\n```",
+              "createdAt": "2026-10-07T01:13:12Z",
+              "updatedAt": "2026-10-07T01:15:41Z"
+            },
+            {
+              "originalPosition": 64,
+              "body": "```suggestion\nfrom the corresponding SUBSCRIBE_TRACKS. When sent in SUB_FLOW_CONTROL_UPDATE,\nthe value is added to the current limit.\n```",
+              "createdAt": "2026-10-07T01:14:32Z",
+              "updatedAt": "2026-10-07T01:15:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOU86eg88AAAABRBkMsA",
+          "commit": {
+            "abbreviatedOid": "7ee7a12"
+          },
+          "author": "afrind",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T03:58:10Z",
+          "updatedAt": "2026-10-07T03:58:10Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "I guess why would you negotiate this option -- the ability to limit subscriptions, and let the default be unlimited?",
+              "createdAt": "2026-10-07T03:58:10Z",
+              "updatedAt": "2026-10-07T03:58:10Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 4,
       "id": "PR_kwDOU86eg88AAAABG0UHEA",
       "title": "Make an empty SUB_FLOW_CONTROL_UPDATE a protocol violation",
       "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/4",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Addresses review feedback on PR #1: a SUB_FLOW_CONTROL_UPDATE that carries neither MAX_SUB_STREAMS nor MAX_SUB_BYTES serves no purpose, so a publisher that receives one now closes the session with a PROTOCOL_VIOLATION instead of ignoring it.",
       "createdAt": "2026-10-06T00:28:21Z",
-      "updatedAt": "2026-10-06T00:28:21Z",
+      "updatedAt": "2026-10-06T22:35:18Z",
       "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "baseRefName": "main",
       "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
       "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "headRefName": "empty-update-error",
-      "headRefOid": "e6c64dd8c933764b4f326b927be44fe92ecf13d9",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "a3f3ab64922137a16eed530f4751fbc31fdcf1c9",
+      "closedAt": "2026-10-06T22:35:14Z",
+      "mergedAt": "2026-10-06T22:35:14Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "1090c2dd0c592069f8b0430539702e98c443e6af"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOU86eg88AAAABQ_Gi2g",
+          "commit": {
+            "abbreviatedOid": "e6c64dd"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-06T21:40:47Z",
+          "updatedAt": "2026-10-06T21:40:51Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "```suggestion\n  parameter, it MUST close the session with a `PROTOCOL_VIOLATION`.\n```",
+              "createdAt": "2026-10-06T21:40:47Z",
+              "updatedAt": "2026-10-06T21:40:51Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 5,
       "id": "PR_kwDOU86eg88AAAABG0anWg",
       "title": "Clarify that credit updates are deltas and forbid a delta of 0",
       "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/5",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Addresses review feedback on PR #1 asking whether limits must always increase. SUB_FLOW_CONTROL_UPDATE values were already added to the current limit; state that explicitly so limits never decrease.\r\n\r\nAs in HTTP/2 WINDOW_UPDATE, a publisher that receives an update with a delta of 0 closes the session with a PROTOCOL_VIOLATION.",
       "createdAt": "2026-10-06T00:42:58Z",
-      "updatedAt": "2026-10-06T00:42:58Z",
+      "updatedAt": "2026-10-06T22:33:26Z",
       "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "baseRefName": "main",
       "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
       "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "headRefName": "explicit-credit-deltas",
       "headRefOid": "7af3934b42ec413bde1e6e03748c8b5707d77e6d",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-06T22:33:23Z",
+      "mergedAt": "2026-10-06T22:33:23Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "83039a299e1627decb37dc48aa01d882499dddfa"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOU86eg88AAAABQ_Fxaw",
+          "commit": {
+            "abbreviatedOid": "7af3934"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-06T21:39:16Z",
+          "updatedAt": "2026-10-06T21:39:16Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 6,
       "id": "PR_kwDOU86eg88AAAABG0j7sg",
       "title": "Require reliable reset and add Stream Sequence to subgroup streams",
       "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/6",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Addresses review feedback on PR #1 about correlating SUBGROUP_RESET with the reset stream. Group ID and Subgroup ID are not sufficient: a stream reset before its header arrives is unidentifiable, and a publisher can open more than one stream for the same subgroup.\r\n\r\n* Endpoints offering the extension MUST support RESET_STREAM_AT, and publishers MUST reset subgroup streams with a reliable_size covering the SUBGROUP_HEADER.\r\n* When the extension is negotiated, SUBGROUP_HEADER includes a per-subscription Stream Sequence. SUBGROUP_RESET identifies the stream by Stream Sequence instead of Group ID and Subgroup ID.\r\n* A Stream Sequence at or above the stream limit is FLOW_CONTROL_EXCEEDED; a detected duplicate is a PROTOCOL_VIOLATION.",
       "createdAt": "2026-10-06T01:03:47Z",
-      "updatedAt": "2026-10-06T01:07:48Z",
+      "updatedAt": "2026-10-07T03:58:56Z",
       "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "baseRefName": "main",
-      "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
+      "baseRefOid": "d4d1f1671f6f431aa7d4142b52f53b21821cc3fe",
       "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "headRefName": "require-reliable-reset",
-      "headRefOid": "e85255d01991ca89f8fff11fd0fb8e2d6ded58b8",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "2d57d07fc955501ccc7239085c65c3c59e76a72c",
+      "closedAt": "2026-10-07T03:58:53Z",
+      "mergedAt": "2026-10-07T03:58:53Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "f7399d25a7fe806823e44d0cc36942c5f5b17a09"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOU86eg88AAAABRArd8w",
+          "commit": {
+            "abbreviatedOid": "e85255d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "I'm saddened by the complexity of this, but given Stream ID isn't exposed, I think it's a reasonable compromise.",
+          "createdAt": "2026-10-07T01:24:29Z",
+          "updatedAt": "2026-10-07T01:24:29Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 7,
       "id": "PR_kwDOU86eg88AAAABG0rf4A",
       "title": "Apply the Final Size check whenever the transport reports it",
       "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/7",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Addresses review feedback on PR #1 about WebTransport and the Final Size cross-check. WebTransport implementations do not necessarily expose a reset stream's final size; when the transport does report it, a mismatch with SUBGROUP_RESET is a PROTOCOL_VIOLATION.\r\n\r\n* Drop the FIN case, which never produces a SUBGROUP_RESET to check.\r\n* Trim the Security Considerations paragraph to describe the threat and point to Byte Accounting instead of restating the rule.",
       "createdAt": "2026-10-06T01:20:56Z",
-      "updatedAt": "2026-10-06T01:20:56Z",
+      "updatedAt": "2026-10-07T01:36:46Z",
       "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "baseRefName": "main",
       "baseRefOid": "4c216ddc5b1fa87f63074c6b948bb8a4e88edffa",
       "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
       "headRefName": "webtransport-final-size",
-      "headRefOid": "0193b2e8981e459f6d999c3b5e11d4f9ce5b2164",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "12c37524089ac6ac721b4605a95a98c7bdcd9ef0",
+      "closedAt": "2026-10-07T01:36:43Z",
+      "mergedAt": "2026-10-07T01:36:42Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "d4d1f1671f6f431aa7d4142b52f53b21821cc3fe"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOU86eg88AAAABQ_DobA",
+          "commit": {
+            "abbreviatedOid": "0193b2e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Two questions/suggestions",
+          "createdAt": "2026-10-06T21:35:08Z",
+          "updatedAt": "2026-10-06T21:37:24Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "Or RESET_STREAM_AT?",
+              "createdAt": "2026-10-06T21:35:08Z",
+              "updatedAt": "2026-10-06T21:37:24Z"
+            },
+            {
+              "originalPosition": 10,
+              "body": "This paragraph is all about the reset case, so I wonder if it's be better to split the previous paragraph at \"When a publisher resets a stream,\" and put this paragraph at the end of that?",
+              "createdAt": "2026-10-06T21:37:02Z",
+              "updatedAt": "2026-10-06T21:37:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOU86eg88AAAABQ_hemQ",
+          "commit": {
+            "abbreviatedOid": "2415f74"
+          },
+          "author": "github-actions",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-06T22:39:29Z",
+          "updatedAt": "2026-10-06T22:39:29Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "````suggestion\nthe subscriber charges the bytes it received.\n````",
+              "createdAt": "2026-10-06T22:39:29Z",
+              "updatedAt": "2026-10-06T22:39:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOU86eg88AAAABRAogAQ",
+          "commit": {
+            "abbreviatedOid": "12c3752"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T01:16:40Z",
+          "updatedAt": "2026-10-07T01:16:40Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "id": "PR_kwDOU86eg88AAAABHC7WYg",
+      "title": "Use \"consumes credit\" instead of \"charge\" in Byte Accounting",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/8",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Follow RFC 9000's phrasing, where streams consume flow control credit.",
+      "createdAt": "2026-10-07T04:07:02Z",
+      "updatedAt": "2026-10-07T04:09:34Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "f7399d25a7fe806823e44d0cc36942c5f5b17a09",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "avoid-charge",
+      "headRefOid": "c505d533cf7a474720741d87254842f0b18533c4",
+      "closedAt": "2026-10-07T04:09:30Z",
+      "mergedAt": "2026-10-07T04:09:30Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "5993669ba6dd3d99c2349153c4e25916aba37291"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 9,
+      "id": "PR_kwDOU86eg88AAAABHC9iHQ",
+      "title": "Consistency cleanup",
+      "url": "https://github.com/afrind/draft-frindell-moq-subscription-flow-control/pull/9",
+      "state": "MERGED",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "- Drop stale \"whether or not limits are in use\" from SUBGROUP_RESET\r\n- Use the standard error sentence form for the 2^64-1 limit, the zero delta (adding the missing MUST), and FLOW_CONTROL_EXCEEDED\r\n- Reflow overlong and ragged lines",
+      "createdAt": "2026-10-07T04:12:19Z",
+      "updatedAt": "2026-10-07T04:13:08Z",
+      "baseRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "baseRefName": "main",
+      "baseRefOid": "5993669ba6dd3d99c2349153c4e25916aba37291",
+      "headRepository": "afrind/draft-frindell-moq-subscription-flow-control",
+      "headRefName": "consistency-cleanup",
+      "headRefOid": "2370562a9d988aa2c9326d8cf26e962fb9adeb26",
+      "closedAt": "2026-10-07T04:13:08Z",
+      "mergedAt": "2026-10-07T04:13:08Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "31f3b72f2eaa9a3a2d99f9f91fafcf9d679603d9"
+      },
       "comments": [],
       "reviews": []
     }
